@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LA GLACE — Persona Chat</title>
+<style>
+  :root {
+    --bg: #faf7f5;
+    --surface: #ffffff;
+    --surface-2: #f3eeea;
+    --border: #e6ddd6;
+    --text: #1a1a1a;
+    --text-muted: #6b6258;
+    --accent: #1a1a1a;
+    --me-bubble: #1a1a1a;
+    --me-text: #ffffff;
+    --them-bubble: #f3eeea;
+    --them-text: #1a1a1a;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sukhumvit Set", "IBM Plex Sans Thai", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .sidebar-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .brand-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .persona-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .persona-card {
+    padding: 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 6px;
+    transition: background 0.15s;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .persona-card:hover { background: var(--surface-2); }
+  .persona-card.active {
+    background: var(--accent);
+    color: white;
+  }
+  .persona-card.active .persona-tagline { color: rgba(255,255,255,0.7); }
+  .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .persona-info { flex: 1; min-width: 0; }
+  .persona-name {
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .persona-segment {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .persona-card.active .persona-segment { color: rgba(255,255,255,0.6); }
+  .persona-tagline {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .api-key-link {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 12px;
+  }
+  .api-key-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .dot.ok { background: #22c55e; }
+  .dot.warn { background: #ef4444; }
+
+  /* CHAT */
+  .chat {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .chat-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .chat-header .avatar { width: 40px; height: 40px; font-size: 20px; }
+  .chat-header-info { flex: 1; }
+  .chat-header-name { font-weight: 600; font-size: 16px; }
+  .chat-header-status {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+  }
+  .online-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+  }
+  .chat-actions button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .chat-actions button:hover { background: var(--surface-2); }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .empty-state {
+    margin: auto;
+    text-align: center;
+    color: var(--text-muted);
+    max-width: 400px;
+  }
+  .empty-state h2 {
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .empty-state .suggestions {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .suggestion {
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+    color: var(--text);
+    transition: background 0.15s;
+  }
+  .suggestion:hover { background: var(--surface-2); }
+
+  .msg {
+    display: flex;
+    gap: 10px;
+    max-width: 80%;
+    animation: slideIn 0.2s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .msg.them { align-self: flex-start; }
+  .msg.me { align-self: flex-end; flex-direction: row-reverse; }
+  .bubble {
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sukhumvit Set", "IBM Plex Sans Thai", "Consolas", monospace;
+  }
+  .bubble strong { font-weight: 700; }
+  .bubble code, .bubble .bar {
+    font-family: "SF Mono", Consolas, "Courier New", monospace;
+    font-size: 12px;
+    letter-spacing: -0.5px;
+  }
+  .msg.them .bubble {
+    background: var(--them-bubble);
+    color: var(--them-text);
+    border-bottom-left-radius: 4px;
+  }
+  .msg.me .bubble {
+    background: var(--me-bubble);
+    color: var(--me-text);
+    border-bottom-right-radius: 4px;
+  }
+  .msg .avatar { width: 32px; height: 32px; font-size: 16px; flex-shrink: 0; }
+  .msg.me .avatar { background: var(--accent); color: white; font-size: 12px; font-weight: 600; }
+  .msg-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    padding: 0 4px;
+  }
+  .typing {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+  }
+  .typing span {
+    width: 6px;
+    height: 6px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* COMPOSER */
+  .composer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .composer-inner {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    background: var(--surface-2);
+    border-radius: 24px;
+    padding: 8px 8px 8px 16px;
+  }
+  textarea {
+    flex: 1;
+    border: none;
+    background: transparent;
+    resize: none;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+    max-height: 120px;
+    padding: 6px 0;
+    outline: none;
+    color: var(--text);
+  }
+  .send-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+  .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .send-btn svg { width: 18px; height: 18px; }
+
+  /* MODAL */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 28px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal h3 { font-size: 18px; margin-bottom: 8px; }
+  .modal p { color: var(--text-muted); font-size: 13px; margin-bottom: 16px; line-height: 1.5; }
+  .modal input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: monospace;
+    margin-bottom: 14px;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .modal button {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: none;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-secondary { background: var(--surface-2); color: var(--text); }
+
+  /* SCROLLBARS */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d4cbc2; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #b8a99a; }
+
+  @media (max-width: 700px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .sidebar.show { display: flex; position: fixed; inset: 0; z-index: 50; }
+  }
+
+  /* =========================================================
+     MODE SWITCHER + SURVEY UI
+     ========================================================= */
+  .mode-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px 16px 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .mode-tab {
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .mode-tab:hover { color: var(--text); }
+  .mode-tab.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  .survey-view { display: none; flex: 1; overflow: hidden; min-height: 0; }
+  .survey-view.active { display: grid; grid-template-columns: 360px 1fr; }
+
+  .survey-side {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .survey-side h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .survey-side label { font-size: 13px; color: var(--text); display: block; margin-bottom: 6px; }
+  .survey-side input, .survey-side textarea, .survey-side select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    background: var(--bg);
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .survey-side textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+  .survey-side .help {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: -4px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .seg-list { display: flex; flex-direction: column; gap: 6px; }
+  .seg-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .seg-row input[type=checkbox] { width: auto; margin: 0; }
+  .seg-swatch { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .seg-meta { color: var(--text-muted); font-size: 11px; margin-left: auto; }
+
+  .survey-main {
+    overflow-y: auto;
+    padding: 24px 32px;
+    background: var(--bg);
+  }
+  .survey-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .survey-card h3 {
+    font-size: 14px;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .survey-card .meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .survey-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .qtype-pill {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: inherit;
+  }
+  .qtype-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .run-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .run-btn .spinner {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Distribution chart — text-bar style */
+  .dist-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 50px;
+    gap: 10px;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 12px;
+  }
+  .dist-row .label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text);
+  }
+  .dist-row .bar {
+    height: 18px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .dist-row .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease-out;
+  }
+  .dist-row .pct {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .segment-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .segment-tab {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .segment-tab.active {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+  .segment-tab .sw { width: 8px; height: 8px; border-radius: 50%; }
+
+  .theme-card {
+    background: var(--surface-2);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  .theme-card .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .theme-card .name { font-weight: 600; font-size: 13px; }
+  .theme-card .weight { font-size: 11px; color: var(--text-muted); }
+  .theme-card .quote {
+    font-style: italic;
+    font-size: 12px;
+    color: var(--text-muted);
+    border-left: 2px solid var(--border);
+    padding-left: 8px;
+    margin-top: 4px;
+  }
+  .theme-card .segs { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+  .insight-box {
+    background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+    border: 1px solid #fbbf24;
+    border-radius: 12px;
+    padding: 14px;
+    margin-top: 12px;
+  }
+  .insight-box .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #92400e;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .insight-box .text { font-size: 13px; line-height: 1.5; color: #1a1a1a; }
+
+  .ro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .ro-card {
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .ro-card.risks { background: #fef2f2; border: 1px solid #fecaca; }
+  .ro-card.opps { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .ro-card h5 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .ro-card.risks h5 { color: #991b1b; }
+  .ro-card.opps h5 { color: #166534; }
+  .ro-card ul { margin: 0; padding-left: 16px; }
+  .ro-card li { margin-bottom: 4px; }
+
+  .satisfaction-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--surface-2);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 8px;
+  }
+  .satisfaction-pill .score {
+    font-size: 16px;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .empty-survey {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-survey h2 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
+  .empty-survey p { font-size: 13px; max-width: 460px; margin: 0 auto 16px; }
+
+  .history-item {
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .history-item:hover { background: var(--border); }
+  .history-item .q { font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .history-item .ts { color: var(--text-muted); font-size: 10px; }
+
+  .preset-chip {
+    padding: 6px 10px;
+    background: var(--surface-2);
+    border-radius: 14px;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--text);
+    border: 1px solid transparent;
+  }
+  .preset-chip:hover { border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div style="display:flex; flex-direction:column; height:100vh;">
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-mode="chat">💬 Persona Chat</button>
+    <button class="mode-tab" data-mode="survey">📊 Survey & Predict</button>
+    <div style="flex:1"></div>
+    <span style="font-size:11px; color:var(--text-muted); align-self:center; padding-right:8px;" id="mode-status">Offline · rule-based</span>
+  </div>
+
+  <!-- ============== CHAT MODE ============== -->
+  <div class="app" id="mode-chat-view">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">LA GLACE</div>
+        <div class="brand-sub">Persona Chat · ลูกค้าเสมือนจริง</div>
+      </div>
+      <div class="persona-list" id="persona-list"></div>
+      <div class="sidebar-footer">
+        <span class="api-key-status">
+          <span class="dot ok"></span> Offline mode · rule-based analyzer
+        </span>
+      </div>
+    </aside>
+
+    <main class="chat" id="chat-area">
+      <div class="empty-state" id="empty-main" style="margin: auto; text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+        <h2>เลือก persona ที่ต้องการคุย</h2>
+        <p style="color: var(--text-muted); font-size: 14px; max-width: 360px; margin: 8px auto;">
+          คุยกับลูกค้าเสมือนจริงของ LA GLACE — แต่ละคนมีตัวตน วิธีพูด และพฤติกรรมการซื้อต่างกัน
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============== SURVEY MODE ============== -->
+  <div class="survey-view" id="mode-survey-view">
+    <aside class="survey-side">
+      <div>
+        <h4>⚙️ Settings</h4>
+        <label>Claude API Key</label>
+        <input type="password" id="cfg-api-key" placeholder="sk-ant-..." autocomplete="off">
+        <div class="help">เก็บใน localStorage เฉพาะเครื่องนี้ · ใช้สำหรับ AI panel mode</div>
+
+        <label>Model</label>
+        <select id="cfg-model">
+          <option value="claude-sonnet-4-6">Sonnet 4.6 (แนะนำ — balanced)</option>
+          <option value="claude-opus-4-7">Opus 4.7 (คุณภาพสูงสุด, แพง)</option>
+          <option value="claude-haiku-4-5-20251001">Haiku 4.5 (เร็ว, ถูก)</option>
+        </select>
+
+        <label style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+          <input type="checkbox" id="cfg-web-search" style="width:auto;">
+          <span>เปิด WebSearch tool</span>
+        </label>
+        <div class="help">ให้ personas ค้นหาเทรนด์ real-time (ช้า + แพงขึ้น)</div>
+      </div>
+
+      <div>
+        <h4>🔥 Current Beauty Trends</h4>
+        <div class="help">กรอกเทรนด์ปัจจุบัน — จะ inject เข้า persona context ทุกครั้ง</div>
+        <textarea id="cfg-trends" rows="10" placeholder="- เทรนด์ที่ 1..."></textarea>
+        <button class="run-btn" style="padding:6px 14px; font-size:12px; margin:0;" id="trends-save-btn">💾 Save</button>
+        <button class="run-btn" style="padding:6px 14px; font-size:12px; margin:0 0 0 4px; background:var(--surface-2); color:var(--text);" id="trends-reset-btn">↺ Reset</button>
+      </div>
+
+      <div>
+        <h4>👥 Filter Segments</h4>
+        <div class="seg-list" id="seg-filter-list"></div>
+      </div>
+
+      <div>
+        <h4>📜 ประวัติแคมเปญ</h4>
+        <div id="survey-history"></div>
+      </div>
+    </aside>
+
+    <main class="survey-main" id="survey-main">
+      <div class="survey-card">
+        <h3>📝 ตั้งคำถามให้ panel</h3>
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">
+          จำลองลูกค้า 32 คน × 4 กลุ่ม → ดู distribution คาดการณ์
+        </div>
+
+        <label style="font-size:12px; color:var(--text-muted); margin-bottom:4px; display:block;">ประเภทคำถาม</label>
+        <div class="survey-row" style="margin-bottom:12px;">
+          <button class="qtype-pill active" data-qt="multiple_choice">Multiple Choice</button>
+          <button class="qtype-pill" data-qt="rating_1_5">Rating 1-5</button>
+          <button class="qtype-pill" data-qt="yes_no">Yes/No</button>
+          <button class="qtype-pill" data-qt="open_ended">Open-ended</button>
+        </div>
+
+        <label style="font-size:12px; color:var(--text-muted); margin-bottom:4px; display:block;">คำถาม</label>
+        <textarea id="q-text" rows="2" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:13px; resize:vertical;" placeholder="เช่น: ถ้า LA GLACE ออก Hybrid Tint ราคา 390 บาท คุณจะซื้อไหม?"></textarea>
+
+        <div id="q-options-section" style="margin-top:10px;">
+          <label style="font-size:12px; color:var(--text-muted); margin-bottom:4px; display:block;">Options (1 บรรทัดต่อ 1 option)</label>
+          <textarea id="q-options" rows="3" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:13px; resize:vertical;" placeholder="ซื้อแน่นอน&#10;รอรีวิวก่อน&#10;ไม่ซื้อ"></textarea>
+        </div>
+
+        <label style="font-size:12px; color:var(--text-muted); margin-bottom:4px; display:block; margin-top:10px;">Context เพิ่มเติม (optional)</label>
+        <textarea id="q-context" rows="2" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:13px; resize:vertical;" placeholder="เช่น: เป็น campaign วันที่ 11.11 ลด 30%"></textarea>
+
+        <div style="margin-top:12px; display:flex; gap:6px; flex-wrap:wrap;">
+          <span style="font-size:11px; color:var(--text-muted); margin-right:4px; align-self:center;">Quick presets:</span>
+          <button class="preset-chip" data-preset="new_product">📦 ออกสินค้าใหม่</button>
+          <button class="preset-chip" data-preset="promo_double">🛍️ Promo Double Day</button>
+          <button class="preset-chip" data-preset="collab">🎨 Brand Collab</button>
+          <button class="preset-chip" data-preset="price">💰 ปรับราคา</button>
+          <button class="preset-chip" data-preset="channel">📍 ขยายช่องทาง</button>
+        </div>
+
+        <button class="run-btn" id="run-survey-btn" style="margin-top:14px;">
+          🚀 Run Survey
+        </button>
+      </div>
+
+      <div id="survey-result"></div>
+    </main>
+  </div>
+
+</div>
+
+<script src="personas.js"></script>
+<script src="analyzer.js"></script>
+<script src="survey-personas.js"></script>
+<script src="survey.js"></script>
+<script>
+  const STORAGE_KEY = 'la_glace_chat_history';
+
+  let activePersona = null;
+  let chatHistory = loadHistory(); // { personaId: [{role, content, time}] }
+  let pendingResponse = false;
+
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function saveHistory() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
+  }
+
+  function renderPersonaList() {
+    const el = document.getElementById('persona-list');
+    el.innerHTML = '';
+    LA_GLACE_DATA.personas.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'persona-card' + (activePersona && activePersona.id === p.id ? ' active' : '');
+      card.onclick = () => selectPersona(p);
+      card.innerHTML = `
+        <div class="avatar" style="background: ${p.avatar_color}20;">${p.emoji}</div>
+        <div class="persona-info">
+          <div class="persona-name">${p.codename}</div>
+          <div class="persona-segment">${p.segment}</div>
+          <div class="persona-tagline">${p.tagline}</div>
+        </div>
+      `;
+      el.appendChild(card);
+    });
+  }
+
+  function selectPersona(p) {
+    activePersona = p;
+    renderPersonaList();
+    renderChat();
+  }
+
+  function renderChat() {
+    if (!activePersona) return;
+    const p = activePersona;
+    const history = chatHistory[p.id] || [];
+
+    const html = `
+      <div class="chat-header">
+        <div class="avatar" style="background: ${p.avatar_color}20;">${p.emoji}</div>
+        <div class="chat-header-info">
+          <div class="chat-header-name">${p.codename} · ${p.detail.age} ปี</div>
+          <div class="chat-header-status"><span class="online-dot"></span> ${p.segment} · ${p.tagline}</div>
+        </div>
+        <div class="chat-actions">
+          <button onclick="clearChat()">ล้างประวัติ</button>
+        </div>
+      </div>
+      <div class="messages" id="messages"></div>
+      <div class="composer">
+        <div class="composer-inner">
+          <textarea id="composer-input" placeholder="พิมพ์ข้อความถึง ${p.codename}..." rows="1"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"/>
+              <polyline points="5 12 12 5 19 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
+    document.getElementById('chat-area').innerHTML = html;
+
+    const msgEl = document.getElementById('messages');
+    if (history.length === 0) {
+      msgEl.innerHTML = `
+        <div class="empty-state">
+          <h2>เริ่มคุยกับ ${p.codename} 🌸</h2>
+          <p style="font-size: 13px;">${p.tagline}</p>
+          <div class="suggestions">
+            <button class="suggestion" onclick="sendSuggestion('สวัสดี ${p.codename} แนะนำตัวหน่อยได้ไหม?')">👋 แนะนำตัว</button>
+            <button class="suggestion" onclick="sendSuggestion('คิดยังไงกับ Black Magic Blush?')">🖤 ความเห็นต่อ Black Magic Blush</button>
+            <button class="suggestion" onclick="sendSuggestion('โอกาสที่จะซื้อ LA GLACE รอบหน้าเป็นยังไง?')">🛒 ความน่าจะซื้อรอบถัดไป</button>
+            <button class="suggestion" onclick="sendSuggestion('ราคาเท่าไหร่ที่ยอมจ่ายได้?')">💰 ราคาที่ยอมจ่าย</button>
+            <button class="suggestion" onclick="sendSuggestion('เปรียบเทียบ LA GLACE กับแบรนด์อื่น')">⚖️ เปรียบเทียบกับคู่แข่ง</button>
+            <button class="suggestion" onclick="sendSuggestion('แนะนำสินค้า LA GLACE ตัวไหนก่อน?')">⭐ แนะนำสินค้า</button>
+            <button class="suggestion" onclick="sendSuggestion('ปัญหา/ไม่ชอบอะไรของ LA GLACE บ้าง?')">⚠️ Pain points</button>
+            <button class="suggestion" onclick="sendSuggestion('อยากให้ LA GLACE ออกอะไรใหม่?')">✨ สินค้าใหม่ที่อยากได้</button>
+            <button class="suggestion" onclick="sendSuggestion('ซื้อ LA GLACE ที่ไหน?')">🛍️ ช่องทางซื้อ</button>
+          </div>
+        </div>
+      `;
+    } else {
+      history.forEach(m => msgEl.appendChild(buildMessageEl(m)));
+      scrollToBottom();
+    }
+
+    const input = document.getElementById('composer-input');
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    });
+    input.focus();
+  }
+
+  function buildMessageEl(m) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + (m.role === 'user' ? 'me' : 'them');
+    const isUser = m.role === 'user';
+    const avatar = isUser
+      ? `<div class="avatar">คุณ</div>`
+      : `<div class="avatar" style="background: ${activePersona.avatar_color}20;">${activePersona.emoji}</div>`;
+    const content = isUser ? escapeHtml(m.content) : renderMarkdown(m.content);
+    div.innerHTML = `${avatar}<div><div class="bubble">${content}</div></div>`;
+    return div;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // Minimal markdown renderer for analyzer output (bold, tables, lists)
+  function renderMarkdown(text) {
+    let html = escapeHtml(text);
+    // Bold **text**
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // Tables (markdown-style with | separators)
+    const lines = html.split('\n');
+    const out = [];
+    let inTable = false;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const isTableRow = /^\|.*\|$/.test(line.trim());
+      const isSeparator = /^\|[\s:|-]+\|$/.test(line.trim());
+      if (isTableRow && !isSeparator) {
+        if (!inTable) { out.push('<table style="border-collapse:collapse;margin:6px 0;">'); inTable = true; }
+        const cells = line.trim().slice(1, -1).split('|').map(c => c.trim());
+        const isHeader = !inTable || (i+1 < lines.length && /^\|[\s:|-]+\|$/.test(lines[i+1].trim()));
+        const tag = (i+1 < lines.length && /^\|[\s:|-]+\|$/.test(lines[i+1].trim())) ? 'th' : 'td';
+        const row = '<tr>' + cells.map(c => `<${tag} style="border-bottom:1px solid rgba(0,0,0,0.08);padding:4px 10px;text-align:left;font-size:12px;">${c}</${tag}>`).join('') + '</tr>';
+        out.push(row);
+      } else if (isSeparator) {
+        // skip
+      } else {
+        if (inTable) { out.push('</table>'); inTable = false; }
+        out.push(line);
+      }
+    }
+    if (inTable) out.push('</table>');
+    return out.join('\n');
+  }
+
+  function scrollToBottom() {
+    const el = document.getElementById('messages');
+    if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  function sendSuggestion(text) {
+    document.getElementById('composer-input').value = text;
+    sendMessage();
+  }
+
+  async function sendMessage() {
+    if (pendingResponse) return;
+    const input = document.getElementById('composer-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const p = activePersona;
+    if (!chatHistory[p.id]) chatHistory[p.id] = [];
+
+    const empty = document.querySelector('#messages .empty-state');
+    if (empty) empty.remove();
+
+    chatHistory[p.id].push({ role: 'user', content: text });
+    saveHistory();
+    document.getElementById('messages').appendChild(buildMessageEl({ role: 'user', content: text }));
+    input.value = '';
+    input.style.height = 'auto';
+    scrollToBottom();
+
+    const typingEl = document.createElement('div');
+    typingEl.className = 'msg them';
+    typingEl.id = 'typing-indicator';
+    typingEl.innerHTML = `
+      <div class="avatar" style="background: ${p.avatar_color}20;">${p.emoji}</div>
+      <div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>
+    `;
+    document.getElementById('messages').appendChild(typingEl);
+    scrollToBottom();
+
+    pendingResponse = true;
+    document.getElementById('send-btn').disabled = true;
+
+    // Simulate thinking delay (300-900ms based on length) for realism
+    const delay = Math.min(900, 300 + text.length * 5);
+    setTimeout(() => {
+      try {
+        const reply = PersonaAnalyzer.generateResponse(p, text);
+        typingEl.remove();
+        chatHistory[p.id].push({ role: 'assistant', content: reply });
+        saveHistory();
+        document.getElementById('messages').appendChild(buildMessageEl({ role: 'assistant', content: reply }));
+        scrollToBottom();
+      } catch (err) {
+        typingEl.remove();
+        const errEl = document.createElement('div');
+        errEl.className = 'msg them';
+        errEl.innerHTML = `<div class="avatar">⚠️</div><div class="bubble" style="background: #fee; color: #c00;">${escapeHtml('[Error: ' + err.message + ']')}</div>`;
+        document.getElementById('messages').appendChild(errEl);
+        scrollToBottom();
+      } finally {
+        pendingResponse = false;
+        document.getElementById('send-btn').disabled = false;
+      }
+    }, delay);
+  }
+
+  function clearChat() {
+    if (!activePersona) return;
+    if (!confirm(`ล้างประวัติแชทกับ ${activePersona.codename}?`)) return;
+    delete chatHistory[activePersona.id];
+    saveHistory();
+    renderChat();
+  }
+
+  // Init
+  renderPersonaList();
+  selectPersona(LA_GLACE_DATA.personas[0]);
+
+  // =================================================================
+  // MODE SWITCHER
+  // =================================================================
+  document.querySelectorAll('.mode-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.dataset.mode;
+      document.querySelectorAll('.mode-tab').forEach(b => b.classList.toggle('active', b === btn));
+      document.getElementById('mode-chat-view').style.display = mode === 'chat' ? 'grid' : 'none';
+      document.getElementById('mode-survey-view').classList.toggle('active', mode === 'survey');
+      if (mode === 'survey') initSurveyView();
+    });
+  });
+
+  // =================================================================
+  // SURVEY VIEW — initialize once on first tab open
+  // =================================================================
+  let surveyInitialized = false;
+  let activeQuestionType = 'multiple_choice';
+  let selectedSegments = null; // null = all
+  let lastResult = null;
+  let activeSegmentView = 'overall';
+
+  const PRESETS = {
+    new_product: {
+      question: 'ถ้า LA GLACE ออก "Skincare-infused Blurring Tint" (ลิป + ปกปิดริมฝีปาก + บำรุง) ราคา 390 บาท คุณจะซื้อไหม?',
+      options: ['ซื้อแน่นอน', 'รอรีวิวก่อน', 'ลังเล / ราคาสูงไป', 'ไม่ซื้อ'],
+      qtype: 'multiple_choice',
+      context: 'เปิดตัวพร้อม Hero Product Toner Pad'
+    },
+    promo_double: {
+      question: 'ถ้า LA GLACE ทำแคมเปญ "11.11 ลดทุกชิ้น 25% + ส่งฟรี" คุณคิดว่าจะซื้อกี่ชิ้น?',
+      options: ['ไม่ซื้อ', '1 ชิ้น', '2-3 ชิ้น', '4 ชิ้นขึ้นไป'],
+      qtype: 'multiple_choice',
+      context: 'แข่งกับ Romand / Cathy Doll ที่ทำ 11.11 เหมือนกัน'
+    },
+    collab: {
+      question: 'LA GLACE ควรทำ collab กับใครให้สร้าง impact สูงสุด?',
+      options: ['Art Toy ระดับโลก (เช่น Labubu, Smiski)', 'แบรนด์สตรีท ขบถ (เช่น Carnival)', 'อนิเมะ/Anime IP', 'Idol ไทย viral'],
+      qtype: 'multiple_choice',
+      context: 'Budget collab 5-10 ล้านบาท'
+    },
+    price: {
+      question: 'ถ้า LA GLACE ขึ้นราคา Ph Blush จาก 289 → 350 บาท คุณจะ?',
+      options: ['ยังซื้อ', 'รอโปร', 'เปลี่ยนไปแบรนด์อื่น', 'หยุดซื้อ'],
+      qtype: 'multiple_choice',
+      context: 'อ้างเหตุผล: ingredient upgrade + new shade range'
+    },
+    channel: {
+      question: 'LA GLACE ควรขยายช่องทางขายไปที่ไหน ลำดับแรก?',
+      options: ['Smart Vending Machine ตาม BTS/MRT', 'Quick Commerce (GrabMart/LINE MAN)', 'เปิดร้านใน 7-Eleven ทุกสาขา', 'Flagship Store ในสยาม/ICONSIAM'],
+      qtype: 'multiple_choice',
+      context: ''
+    }
+  };
+
+  function initSurveyView() {
+    if (surveyInitialized) return;
+    surveyInitialized = true;
+
+    // Load API key / model / web search / trends from storage
+    document.getElementById('cfg-api-key').value = SurveyEngine.getApiKey();
+    document.getElementById('cfg-trends').value = SurveyEngine.getCurrentTrends();
+
+    document.getElementById('cfg-api-key').addEventListener('change', e => {
+      SurveyEngine.setApiKey(e.target.value.trim());
+      updateModeStatus();
+    });
+    document.getElementById('cfg-trends').addEventListener('input', e => {
+      // auto-save on input (debounced via storage write itself is cheap)
+    });
+    document.getElementById('trends-save-btn').addEventListener('click', () => {
+      SurveyEngine.setCurrentTrends(document.getElementById('cfg-trends').value);
+      flashToast('💾 บันทึก trends แล้ว');
+    });
+    document.getElementById('trends-reset-btn').addEventListener('click', () => {
+      if (!confirm('Reset trends เป็นค่าเริ่มต้น?')) return;
+      document.getElementById('cfg-trends').value = SurveyEngine.DEFAULT_TRENDS;
+      SurveyEngine.setCurrentTrends(SurveyEngine.DEFAULT_TRENDS);
+    });
+
+    // Question type pills
+    document.querySelectorAll('.qtype-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        activeQuestionType = pill.dataset.qt;
+        document.querySelectorAll('.qtype-pill').forEach(p => p.classList.toggle('active', p === pill));
+        document.getElementById('q-options-section').style.display =
+          activeQuestionType === 'open_ended' ? 'none' : 'block';
+        if (activeQuestionType === 'rating_1_5') {
+          document.getElementById('q-options').value = '1 - แย่มาก\n2 - ไม่ดี\n3 - กลางๆ\n4 - ดี\n5 - ดีมาก';
+        } else if (activeQuestionType === 'yes_no') {
+          document.getElementById('q-options').value = 'ใช่ / จะทำ\nไม่ใช่ / ไม่ทำ';
+        }
+      });
+    });
+
+    // Preset chips
+    document.querySelectorAll('.preset-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const p = PRESETS[chip.dataset.preset];
+        document.getElementById('q-text').value = p.question;
+        document.getElementById('q-options').value = p.options.join('\n');
+        document.getElementById('q-context').value = p.context;
+        activeQuestionType = p.qtype;
+        document.querySelectorAll('.qtype-pill').forEach(pill => {
+          pill.classList.toggle('active', pill.dataset.qt === p.qtype);
+        });
+      });
+    });
+
+    // Segment filter
+    renderSegmentFilter();
+
+    // Run button
+    document.getElementById('run-survey-btn').addEventListener('click', handleRunSurvey);
+
+    // Render history
+    renderSurveyHistory();
+
+    updateModeStatus();
+  }
+
+  function updateModeStatus() {
+    const el = document.getElementById('mode-status');
+    if (SurveyEngine.getApiKey()) {
+      el.innerHTML = '<span class="dot ok"></span> AI panel mode (Claude API)';
+    } else {
+      el.innerHTML = '<span class="dot warn"></span> Offline · rule-based (set API key for AI mode)';
+    }
+  }
+
+  function renderSegmentFilter() {
+    const el = document.getElementById('seg-filter-list');
+    el.innerHTML = '';
+    window.LA_GLACE_SURVEY.segments.forEach(s => {
+      const count = window.LA_GLACE_SURVEY.personas.filter(p => p.segment_id === s.id).length;
+      const row = document.createElement('label');
+      row.className = 'seg-row';
+      row.innerHTML = `
+        <input type="checkbox" data-seg="${s.id}" checked>
+        <span class="seg-swatch" style="background:${s.color}"></span>
+        <span>${s.icon} ${s.name_th}</span>
+        <span class="seg-meta">n=${count}</span>
+      `;
+      el.appendChild(row);
+    });
+  }
+
+  function getSelectedSegments() {
+    const checked = [...document.querySelectorAll('#seg-filter-list input[data-seg]:checked')]
+      .map(i => i.dataset.seg);
+    if (checked.length === window.LA_GLACE_SURVEY.segments.length) return null;
+    return checked;
+  }
+
+  function renderSurveyHistory() {
+    const list = SurveyEngine.getHistory();
+    const el = document.getElementById('survey-history');
+    if (!list.length) {
+      el.innerHTML = '<div style="font-size:11px; color:var(--text-muted);">ยังไม่มีประวัติ</div>';
+      return;
+    }
+    el.innerHTML = '';
+    list.slice(0, 8).forEach((h, idx) => {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      const ts = new Date(h.timestamp);
+      const tsStr = `${ts.getDate()}/${ts.getMonth()+1} ${ts.getHours()}:${String(ts.getMinutes()).padStart(2,'0')}`;
+      item.innerHTML = `
+        <div class="q">${escapeHtml(h.question.slice(0, 80))}${h.question.length > 80 ? '…' : ''}</div>
+        <div class="ts">${tsStr} · ${h.questionType || 'open'}${h.mode === 'fallback_rule_based' ? ' · rule-based' : ''}</div>
+      `;
+      item.addEventListener('click', () => {
+        lastResult = h;
+        document.getElementById('q-text').value = h.question;
+        document.getElementById('q-options').value = (h.options || []).join('\n');
+        document.getElementById('q-context').value = h.context || '';
+        renderSurveyResult(h);
+      });
+      el.appendChild(item);
+    });
+  }
+
+  async function handleRunSurvey() {
+    const question = document.getElementById('q-text').value.trim();
+    if (!question) { alert('กรุณากรอกคำถาม'); return; }
+
+    const optionsRaw = document.getElementById('q-options').value.trim();
+    const options = optionsRaw ? optionsRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+    const context = document.getElementById('q-context').value.trim();
+    const model = document.getElementById('cfg-model').value;
+    const useWebSearch = document.getElementById('cfg-web-search').checked;
+
+    const btn = document.getElementById('run-survey-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> กำลังจำลอง panel...';
+
+    const resultEl = document.getElementById('survey-result');
+    resultEl.innerHTML = '<div class="survey-card" style="text-align:center; color:var(--text-muted);">⏳ กำลังจำลอง 32 personas...<br><span style="font-size:11px;">~10-30 วินาที</span></div>';
+
+    try {
+      let result;
+      if (SurveyEngine.getApiKey()) {
+        result = await SurveyEngine.runSurvey({
+          question, options, questionType: activeQuestionType, context, useWebSearch, model
+        });
+      } else {
+        result = SurveyEngine.runSurveyFallback({
+          question, options, questionType: activeQuestionType
+        });
+      }
+      lastResult = result;
+      renderSurveyResult(result);
+      renderSurveyHistory();
+    } catch (err) {
+      resultEl.innerHTML = `
+        <div class="survey-card" style="background:#fef2f2; border-color:#fecaca;">
+          <h3 style="color:#991b1b;">⚠️ Error</h3>
+          <pre style="font-size:11px; white-space:pre-wrap; color:#7f1d1d;">${escapeHtml(err.message)}</pre>
+        </div>
+      `;
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '🚀 Run Survey';
+    }
+  }
+
+  function renderSurveyResult(r) {
+    const el = document.getElementById('survey-result');
+    activeSegmentView = 'overall';
+    el.innerHTML = '';
+
+    // === Header card ===
+    const hdr = document.createElement('div');
+    hdr.className = 'survey-card';
+    const usage = r.usage ? `· ${r.usage.input_tokens}→${r.usage.output_tokens} tokens` : '';
+    const dur = r.duration_ms ? `· ${(r.duration_ms/1000).toFixed(1)}s` : '';
+    const sat = (r.predicted_satisfaction_score != null)
+      ? `<span class="satisfaction-pill">😊 Satisfaction <span class="score">${r.predicted_satisfaction_score.toFixed(1)}</span>/5</span>`
+      : '';
+    const conf = r.confidence ? `<span style="font-size:11px; color:var(--text-muted); margin-left:8px;">Confidence: ${r.confidence}</span>` : '';
+    hdr.innerHTML = `
+      <h3 style="margin-bottom:4px;">📊 ผลการสำรวจ ${sat}</h3>
+      <div class="meta">${escapeHtml(r.question)} ${conf}</div>
+      <div style="font-size:10px; color:var(--text-muted);">${r.questionType} · ${r.mode === 'fallback_rule_based' ? 'rule-based' : (r.model || 'AI panel')} ${usage} ${dur}</div>
+    `;
+    el.appendChild(hdr);
+
+    // === Distribution ===
+    const dist = document.createElement('div');
+    dist.className = 'survey-card';
+    dist.innerHTML = '<h3>Distribution (สัดส่วนคำตอบ)</h3>';
+
+    // Segment tabs
+    const tabs = document.createElement('div');
+    tabs.className = 'segment-tabs';
+    const allBtn = makeSegTab('overall', '📈 รวม', null);
+    allBtn.classList.add('active');
+    tabs.appendChild(allBtn);
+    window.LA_GLACE_SURVEY.segments.forEach(s => {
+      tabs.appendChild(makeSegTab(s.id, `${s.icon} ${s.name_th}`, s.color));
+    });
+    dist.appendChild(tabs);
+
+    const chartDiv = document.createElement('div');
+    chartDiv.id = 'dist-chart';
+    dist.appendChild(chartDiv);
+    el.appendChild(dist);
+
+    renderDistChart(r, 'overall');
+
+    tabs.querySelectorAll('.segment-tab').forEach(t => {
+      t.addEventListener('click', () => {
+        tabs.querySelectorAll('.segment-tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        renderDistChart(r, t.dataset.seg);
+      });
+    });
+
+    // === Top Themes ===
+    if (r.top_themes && r.top_themes.length) {
+      const t = document.createElement('div');
+      t.className = 'survey-card';
+      t.innerHTML = '<h3>💡 Top Reasons / Themes</h3>';
+      r.top_themes.forEach(th => {
+        const segNames = (th.segments || []).map(sid => {
+          const s = window.LA_GLACE_SURVEY.getSegment(sid);
+          return s ? `${s.icon} ${s.name_th}` : sid;
+        }).join(' · ');
+        const card = document.createElement('div');
+        card.className = 'theme-card';
+        card.innerHTML = `
+          <div class="head">
+            <span class="name">${escapeHtml(th.theme)}</span>
+            <span class="weight">${th.weight_pct}%</span>
+          </div>
+          ${th.sample_quote ? `<div class="quote">"${escapeHtml(th.sample_quote)}"</div>` : ''}
+          ${segNames ? `<div class="segs">${segNames}</div>` : ''}
+        `;
+        t.appendChild(card);
+      });
+      el.appendChild(t);
+    }
+
+    // === Insight / Risks / Opportunities ===
+    if (r.key_insight) {
+      const i = document.createElement('div');
+      i.className = 'survey-card';
+      i.innerHTML = `
+        <div class="insight-box">
+          <div class="label">🎯 Key Insight</div>
+          <div class="text">${escapeHtml(r.key_insight)}</div>
+        </div>
+        <div class="ro-grid">
+          <div class="ro-card risks">
+            <h5>⚠️ ความเสี่ยง</h5>
+            <ul>${(r.risks || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>—</li>'}</ul>
+          </div>
+          <div class="ro-card opps">
+            <h5>✨ โอกาส</h5>
+            <ul>${(r.opportunities || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>—</li>'}</ul>
+          </div>
+        </div>
+      `;
+      el.appendChild(i);
+    }
+  }
+
+  function makeSegTab(id, label, color) {
+    const btn = document.createElement('button');
+    btn.className = 'segment-tab';
+    btn.dataset.seg = id;
+    btn.innerHTML = color ? `<span class="sw" style="background:${color}"></span> ${label}` : label;
+    return btn;
+  }
+
+  function renderDistChart(r, segId) {
+    const target = document.getElementById('dist-chart');
+    let dist, color;
+    if (segId === 'overall' || !r.by_segment || !r.by_segment[segId]) {
+      dist = r.overall_distribution || {};
+      color = '#1a1a1a';
+    } else {
+      dist = r.by_segment[segId];
+      const seg = window.LA_GLACE_SURVEY.getSegment(segId);
+      color = seg ? seg.color : '#1a1a1a';
+    }
+    const entries = Object.entries(dist).sort((a, b) => b[1] - a[1]);
+    const max = Math.max(...entries.map(e => e[1]), 1);
+    target.innerHTML = entries.map(([k, v]) => `
+      <div class="dist-row">
+        <div class="label" title="${escapeHtml(k)}">${escapeHtml(k)}</div>
+        <div class="bar"><div class="bar-fill" style="width:${(v/max*100).toFixed(1)}%; background:${color};"></div></div>
+        <div class="pct">${v}%</div>
+      </div>
+    `).join('');
+  }
+
+  function flashToast(msg) {
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#1a1a1a; color:white; padding:10px 16px; border-radius:8px; font-size:13px; z-index:200; opacity:0; transition:opacity 0.2s;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => { t.style.opacity = '1'; });
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 200); }, 1800);
+  }
+
+  // Initial mode status
+  updateModeStatus();
+</script>
+</body>
+</html>

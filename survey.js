@@ -1,0 +1,345 @@
+// Survey Engine — simulate persona panel responses + aggregate distribution
+// ใช้ Claude API + (optional) web_search tool เพื่อให้ persona ตอบตามเทรนด์ปัจจุบัน
+//
+// Storage keys:
+//   la_glace_api_key       — Claude API key
+//   la_glace_current_trends — User-input current beauty trends
+//   la_glace_survey_history — past surveys (for re-load)
+
+window.SurveyEngine = (function() {
+
+  const STORAGE = {
+    apiKey: "la_glace_api_key",
+    trends: "la_glace_current_trends",
+    history: "la_glace_survey_history"
+  };
+
+  const DEFAULT_TRENDS = `- TikTok Shop ครองตลาด beauty Thailand (>80% market share for young women)
+- Hybrid Beauty (skincare-infused makeup) กำลังมาแรง — โดยเฉพาะ blurring tint, glow concealer
+- Latte Makeup / Mocha Mousse tone — Pantone 2025 ยังขายดี
+- Underground / "indie sleaze" aesthetic ยังครองใจ Gen Z
+- K-Beauty premiumization (Romand, rom&nd, peripera) ตั้งราคาสูงขึ้น
+- PM 2.5 / heat ไทย ทำให้ long-wear + breathable formula สำคัญมาก
+- Affiliate Marketing บน TikTok = revenue driver หลักของแบรนด์ Thai indie
+- Sustainability / Refill packaging เริ่มถูกพูดถึงมากขึ้น
+- AI-generated content / virtual influencers เริ่มเข้ามา`;
+
+  // ==============================================================
+  // CONFIG GETTERS / SETTERS
+  // ==============================================================
+  function getApiKey() {
+    return localStorage.getItem(STORAGE.apiKey) || "";
+  }
+
+  function setApiKey(key) {
+    if (key) localStorage.setItem(STORAGE.apiKey, key);
+    else localStorage.removeItem(STORAGE.apiKey);
+  }
+
+  function getCurrentTrends() {
+    return localStorage.getItem(STORAGE.trends) || DEFAULT_TRENDS;
+  }
+
+  function setCurrentTrends(text) {
+    localStorage.setItem(STORAGE.trends, text);
+  }
+
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem(STORAGE.history)) || []; }
+    catch { return []; }
+  }
+
+  function saveHistory(list) {
+    localStorage.setItem(STORAGE.history, JSON.stringify(list.slice(0, 30)));
+  }
+
+  // ==============================================================
+  // PROMPT BUILDER
+  // ==============================================================
+  function buildSystemPrompt(opts) {
+    const S = window.LA_GLACE_SURVEY;
+    const trends = opts.currentTrends || getCurrentTrends();
+
+    return `คุณคือ AI ที่ทำหน้าที่จำลอง "Market Research Panel" สำหรับแบรนด์ LA GLACE (เครื่องสำอางไทย Underground Beauty)
+
+# บทบาทของคุณ
+จำลองคำตอบของกลุ่มลูกค้าจริง ${S.personas.length} คน (panel) เพื่อคาดการณ์พฤติกรรม / ความพึงพอใจ / การตอบสนองต่อแคมเปญ
+คำตอบของคุณต้องสะท้อน "สัดส่วนความน่าจะเป็น" ของแต่ละ option — ไม่ใช่คำตอบเดียว
+
+# Brand Context
+${JSON.stringify(S.brand_context, null, 2)}
+
+# Beauty Industry Trends ปัจจุบัน (ใช้ context นี้ในการ reasoning)
+${trends}
+
+# Panel Segments (4 กลุ่ม)
+${S.buildSegmentSummary()}
+
+# Full Persona Panel (${S.personas.length} คน)
+${S.buildPanelSummary()}
+
+# Research-Calibrated Priors (จากผลวิจัยจริง — ใช้ ground คำตอบให้สมจริง)
+${JSON.stringify(S.research_priors, null, 2)}
+
+# วิธีคิด
+1. อ่านคำถาม + option (ถ้ามี)
+2. สำหรับแต่ละ persona — คาดการณ์ว่าจะตอบยังไง โดยอิงกับ:
+   - traits + emotion + segment ของเขา
+   - Beauty trends ปัจจุบัน
+   - Research priors (ถ้าคำถามใกล้เคียงกับข้อที่มี prior)
+3. รวมผลเป็น distribution
+4. สรุป insight + key reasons เป็น actionable insight
+
+# Output Format — ตอบเป็น JSON เท่านั้น (ไม่มี text นอก JSON)
+{
+  "question_type": "multiple_choice | rating_1_5 | open_ended | yes_no",
+  "overall_distribution": {
+    "option_label_1": 45,
+    "option_label_2": 32,
+    "...": "..."
+  },
+  "by_segment": {
+    "strategic_pro":           { "option_label_1": 60, "option_label_2": 25, "...": "..." },
+    "influencer_entrepreneur": { "option_label_1": 40, "option_label_2": 35, "...": "..." },
+    "status_seeker":           { "option_label_1": 30, "option_label_2": 45, "...": "..." },
+    "balanced_lifestyle":      { "option_label_1": 55, "option_label_2": 30, "...": "..." }
+  },
+  "top_themes": [
+    { "theme": "...", "weight_pct": 35, "segments": ["strategic_pro"], "sample_quote": "..." },
+    { "theme": "...", "weight_pct": 28, "segments": ["status_seeker","influencer_entrepreneur"], "sample_quote": "..." }
+  ],
+  "predicted_satisfaction_score": 3.8,
+  "confidence": "high | medium | low",
+  "key_insight": "1-2 ประโยคสรุปสิ่งที่แบรนด์ควรทำต่อ",
+  "risks": ["ข้อกังวลที่อาจเกิดถ้าทำ campaign นี้จริง"],
+  "opportunities": ["จุดที่ campaign นี้เปิดโอกาสให้แบรนด์"]
+}
+
+# กฎสำคัญ
+- ทุก distribution ต้องรวมเป็น ~100 (อนุญาต ±2 จาก rounding)
+- "predicted_satisfaction_score" ใช้กับคำถามเกี่ยวกับสินค้า/โปรโมชั่น (1-5); ถ้าคำถามไม่เข้าข่ายให้ return null
+- sample_quote เป็นภาษาไทย — สะท้อนน้ำเสียงของ persona ในกลุ่มนั้น
+- ถ้าคำถามเป็น "open_ended" ให้ใช้ themes แทน option labels ใน distribution
+- ทุก response ต้อง valid JSON parsable — ไม่ใช้ comment, ไม่มี trailing comma`;
+  }
+
+  function buildUserPrompt(question, options, questionType, context) {
+    let prompt = `# คำถาม\n${question}\n\n`;
+    prompt += `# Question Type\n${questionType}\n\n`;
+    if (options && options.length) {
+      prompt += `# Options (ถ้าเป็น multiple_choice)\n${options.map(o => `- ${o}`).join("\n")}\n\n`;
+    }
+    if (context) {
+      prompt += `# Additional Context จากผู้ใช้\n${context}\n\n`;
+    }
+    prompt += `จำลอง panel และตอบเป็น JSON ตาม format ที่กำหนด`;
+    return prompt;
+  }
+
+  // ==============================================================
+  // CLAUDE API CALL
+  // ==============================================================
+  async function callClaude(opts) {
+    const apiKey = getApiKey();
+    if (!apiKey) throw new Error("กรุณาตั้งค่า Claude API Key ก่อน (คลิก ⚙️ ที่ sidebar)");
+
+    const systemPrompt = buildSystemPrompt(opts);
+    const userPrompt = buildUserPrompt(opts.question, opts.options, opts.questionType, opts.context);
+
+    const body = {
+      model: opts.model || "claude-sonnet-4-6",
+      max_tokens: 4000,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }]
+    };
+
+    if (opts.useWebSearch) {
+      body.tools = [{
+        type: "web_search_20250305",
+        name: "web_search",
+        max_uses: 3
+      }];
+    }
+
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`API ${resp.status}: ${errText}`);
+    }
+
+    const data = await resp.json();
+    // Collect text blocks (web_search may return tool_use too — we only need text output)
+    const textBlocks = (data.content || [])
+      .filter(b => b.type === "text")
+      .map(b => b.text)
+      .join("\n");
+
+    return { raw: textBlocks, usage: data.usage };
+  }
+
+  // ==============================================================
+  // JSON EXTRACTION (handles markdown fences, extra text)
+  // ==============================================================
+  function extractJson(text) {
+    // 1) try fenced block
+    const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenceMatch) {
+      try { return JSON.parse(fenceMatch[1]); } catch (e) { /* fallthrough */ }
+    }
+    // 2) try first {...} block
+    const firstBrace = text.indexOf("{");
+    const lastBrace = text.lastIndexOf("}");
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      const slice = text.slice(firstBrace, lastBrace + 1);
+      try { return JSON.parse(slice); } catch (e) { /* fallthrough */ }
+    }
+    // 3) raw parse
+    return JSON.parse(text);
+  }
+
+  // ==============================================================
+  // RUN SURVEY
+  // ==============================================================
+  async function runSurvey({ question, options = [], questionType = "open_ended", context = "", useWebSearch = false, model = "claude-sonnet-4-6" }) {
+    const start = Date.now();
+    const apiResp = await callClaude({ question, options, questionType, context, useWebSearch, model });
+    let parsed;
+    try {
+      parsed = extractJson(apiResp.raw);
+    } catch (err) {
+      throw new Error("ไม่สามารถ parse JSON ได้: " + err.message + "\n\nRaw output:\n" + apiResp.raw.slice(0, 500));
+    }
+
+    const result = {
+      timestamp: Date.now(),
+      duration_ms: Date.now() - start,
+      question,
+      options,
+      questionType,
+      context,
+      useWebSearch,
+      model,
+      usage: apiResp.usage,
+      ...parsed
+    };
+
+    // Persist to history
+    const history = getHistory();
+    history.unshift(result);
+    saveHistory(history);
+
+    return result;
+  }
+
+  // ==============================================================
+  // FALLBACK MODE (rule-based) — ใช้เมื่อยังไม่มี API key
+  // จำลอง distribution จาก persona traits + research priors
+  // ==============================================================
+  function runSurveyFallback({ question, options = [], questionType = "open_ended" }) {
+    const S = window.LA_GLACE_SURVEY;
+    const q = question.toLowerCase();
+
+    // detect if question maps to a known prior
+    const priorKey = findMatchingPrior(q);
+    let overall = {};
+    let bySegment = {};
+
+    if (priorKey && options.length === 0) {
+      overall = { ...S.research_priors[priorKey] };
+    } else if (options.length) {
+      // distribute by persona traits — simple heuristic
+      options.forEach((opt, i) => {
+        overall[opt] = 0;
+      });
+      S.personas.forEach(p => {
+        const seg = S.getSegment(p.segment_id);
+        // weighted random choice influenced by traits
+        const scores = options.map((opt, i) => {
+          let score = 1;
+          const optLower = opt.toLowerCase();
+          if (/storytelling|story|founder|จริงใจ/.test(optLower)) score += seg.core_traits.storytelling_response / 50;
+          if (/double|2\.2|3\.3|4\.4|โปร|โปรโมชั่น/.test(optLower)) score += seg.core_traits.double_day_response / 50;
+          if (/tiktok/.test(optLower)) score += seg.core_traits.tiktok_trust / 50;
+          if (/รีวิว|review/.test(optLower)) score += (100 - seg.core_traits.review_skepticism) / 50;
+          if (/ของหมด|stock|out/.test(optLower)) score += 1.2;
+          if (/ph|blush|บลัช/.test(optLower)) score += 1.5;
+          return score;
+        });
+        const total = scores.reduce((a, b) => a + b, 0);
+        const rand = Math.random() * total;
+        let acc = 0;
+        for (let i = 0; i < options.length; i++) {
+          acc += scores[i];
+          if (rand <= acc) {
+            overall[options[i]] = (overall[options[i]] || 0) + 1;
+            // segment-level
+            bySegment[seg.id] = bySegment[seg.id] || {};
+            bySegment[seg.id][options[i]] = (bySegment[seg.id][options[i]] || 0) + 1;
+            break;
+          }
+        }
+      });
+      // normalize to %
+      const total = Object.values(overall).reduce((a, b) => a + b, 0) || 1;
+      Object.keys(overall).forEach(k => overall[k] = Math.round(overall[k] / total * 100));
+      Object.keys(bySegment).forEach(segId => {
+        const segTotal = Object.values(bySegment[segId]).reduce((a, b) => a + b, 0) || 1;
+        Object.keys(bySegment[segId]).forEach(k => {
+          bySegment[segId][k] = Math.round(bySegment[segId][k] / segTotal * 100);
+        });
+      });
+    } else {
+      overall = { "(ต้องใช้ API mode สำหรับคำถามปลายเปิด)": 100 };
+    }
+
+    return {
+      timestamp: Date.now(),
+      question,
+      options,
+      questionType,
+      mode: "fallback_rule_based",
+      overall_distribution: overall,
+      by_segment: bySegment,
+      top_themes: [],
+      predicted_satisfaction_score: null,
+      confidence: "low",
+      key_insight: "นี่คือ rule-based simulation จากข้อมูลวิจัย — แนะนำให้ตั้งค่า API key เพื่อผลที่แม่นยำขึ้น",
+      risks: [],
+      opportunities: []
+    };
+  }
+
+  function findMatchingPrior(q) {
+    const map = [
+      [/ช่องทาง|ซื้อ.*ที่ไหน|platform|channel/, "purchase_channel"],
+      [/อายุ.*แรก|first.*purchase/, "first_purchase_age"],
+      [/ตอนไหน|ช่วงเวลา|timing/, "purchase_timing"],
+      [/คอนเทนต์|content/, "content_drive"],
+      [/ลังเล|หยุดใช้|hesitat/, "hesitation"],
+      [/hero|สินค้า.*ดีที่สุด/, "hero_product"],
+      [/พกพา|portable/, "portable_hero"],
+      [/จุดอ่อน|weakness|สู้.*ไม่/, "weakness_vs_competitors"],
+      [/สำเร็จ|success/, "success_metric"]
+    ];
+    for (const [re, key] of map) if (re.test(q)) return key;
+    return null;
+  }
+
+  return {
+    getApiKey, setApiKey,
+    getCurrentTrends, setCurrentTrends,
+    getHistory, saveHistory,
+    runSurvey, runSurveyFallback,
+    DEFAULT_TRENDS
+  };
+})();
