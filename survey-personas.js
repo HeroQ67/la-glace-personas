@@ -362,27 +362,64 @@ window.LA_GLACE_SURVEY = {
     positioning: "Underground Beauty — Masstige Thai brand, niche-to-mass",
     founded: 2017,
     revenue_2024_thb: 420000000,
-    hero_products: [
-      "Ph Blush (บลัชเปลี่ยนสีตาม pH ผิว) — 289 THB — Iconic viral product",
-      "Mini Airy Concealer Sachet — 99 THB ขนาดพกพา — เข้าถึง mass + ขายใน 7-Eleven",
-      "Toner Pad — 320 THB — repeat purchase สูงสุด",
-      "Ph Blush Cream / Lip Tint / Eyeliner / Dazzling Glitter"
-    ],
-    price_range: "199–399 THB (Masstige)",
+    price_range: "89–399 THB (Masstige + portable sachets)",
     main_channels: "TikTok Shop (~82%), Shopee (~16%), 7-Eleven, Watson, Konvy",
+
+    // ====== FULL PRODUCT CATALOG with prices (for basket construction) ======
+    product_catalog: {
+      // ----- Blush -----
+      "Ph Blush (Iconic — pH-reactive)":          { price: 289, category: "blush",     popularity: "hero/viral" },
+      "Ph Blush Cream":                            { price: 299, category: "blush",     popularity: "high" },
+      "Blush Powder (ฝุ่น)":                       { price: 259, category: "blush",     popularity: "mid" },
+      // ----- Skincare/Toner -----
+      "Toner Pad — สูตรเขียว (Acne)":              { price: 320, category: "skincare",  popularity: "hero/repeat" },
+      "Toner Pad — สูตรฟ้า (Hydrating)":           { price: 320, category: "skincare",  popularity: "high" },
+      "Toner Pad — สูตรขาว (Barrier)":             { price: 320, category: "skincare",  popularity: "mid" },
+      "Toner Pad — สูตรเหลือง (Vit C)":            { price: 320, category: "skincare",  popularity: "mid" },
+      // ----- Concealer -----
+      "Mini Airy Skin Concealer (Full size)":      { price: 299, category: "complexion", popularity: "high" },
+      "Corrector":                                  { price: 289, category: "complexion", popularity: "mid" },
+      // ----- Lips -----
+      "Lip ไอติม (Stick)":                          { price: 229, category: "lips",      popularity: "high" },
+      "Lip แมท (Matte)":                            { price: 229, category: "lips",      popularity: "high" },
+      "Lip Tint":                                   { price: 199, category: "lips",      popularity: "high" },
+      // ----- Eyes -----
+      "Dolly Eye (Eyeshadow)":                      { price: 259, category: "eyes",      popularity: "mid" },
+      "Eyeliner":                                   { price: 229, category: "eyes",      popularity: "high" },
+      "Mascara คิ้ว (Brow)":                        { price: 219, category: "eyes",      popularity: "mid" },
+      "Dazzling Eye Glitter Duo":                   { price: 329, category: "eyes",      popularity: "viral" },
+      // ----- Sachets / Portable (low ticket) -----
+      "Concealer Sachet (พกพา)":                    { price: 99,  category: "sachet",    popularity: "hero/mass" },
+      "Toner Pad Travel":                           { price: 99,  category: "sachet",    popularity: "high" },
+      "Corrector Sachet":                           { price: 99,  category: "sachet",    popularity: "mid" },
+      "Lip Tint Sachet":                            { price: 89,  category: "sachet",    popularity: "mid" }
+    },
+
+    common_baskets_for_690: [
+      "1× Ph Blush (289) + 1× Toner Pad (320) + 1× Lip Sachet (89) = 698 ✓",
+      "1× Toner Pad (320) + 1× Concealer (299) + 1× Lip Sachet (89) = 708 ✓",
+      "2× Toner Pad (640) + 1× Sachet (99) = 739 ✓",
+      "1× Ph Blush (289) + 1× Lip ไอติม (229) + 1× Toner Travel (99) + 1× Sachet (89) = 706 ✓",
+      "1× Dazzling Glitter (329) + 1× Ph Blush (289) + 1× Sachet (99) = 717 ✓",
+      "3× Sachet (3×99=297) + 1× Ph Blush (289) + 1× Lip Tint (199) = 785 — over",
+      "1× Toner Pad (320) + 1× Ph Blush (289) + 1× Sachet (99) = 708 ✓ (popular bundle)"
+    ],
+
     known_pain_points: [
       "Packaging แตก/รั่วบ่อย",
       "Stock ขาดบ่อย (โดยเฉพาะ Hero Product หลัง viral)",
       "ความหลากหลายสีผิว/shade ยังน้อย",
       "ติดทน/กันเหงื่อยังไม่สู้สภาพอากาศไทย",
-      "ค่าจัดส่ง / ไลฟ์รอนาน"
+      "ค่าจัดส่ง / ไลฟ์รอนาน",
+      "ค่าจัดส่งสูงทำให้ผู้บริโภคต้องซื้อให้คุ้มค่าจัดส่ง"
     ],
     competitors: {
       "Romand": "Korean prestige — premium, packaging สวย",
       "Essence (DE)": "ราคาใกล้กัน, formula stable แต่ไม่มี story",
       "Mistine / Cathy Doll": "Thai mass — ถูกกว่า แต่ขาด vibe / cool factor",
       "ZA / Skinfood": "Counter mass — น่าเบื่อ",
-      "3CE": "Korean — packaging premium, ราคาแพงขึ้น"
+      "3CE": "Korean — packaging premium, ราคาแพงขึ้น",
+      "Peripera": "Korean lip — viral, ราคาสูงกว่า"
     }
   },
 

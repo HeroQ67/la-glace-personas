@@ -1216,6 +1216,7 @@
           <button class="qtype-pill" data-qt="rating_1_5">Rating 1-5</button>
           <button class="qtype-pill" data-qt="yes_no">Yes/No</button>
           <button class="qtype-pill" data-qt="open_ended">Open-ended</button>
+          <button class="qtype-pill" data-qt="compound" title="คำถามหลายมิติ — เช่น 'จะซื้อไหม + ซื้ออะไร'">Compound 🆕</button>
         </div>
 
         <label style="font-size:12px; color:var(--text-muted); margin-bottom:4px; display:block;">คำถาม</label>
@@ -1236,6 +1237,7 @@
           <button class="preset-chip" data-preset="collab">🎨 Brand Collab</button>
           <button class="preset-chip" data-preset="price">💰 ปรับราคา</button>
           <button class="preset-chip" data-preset="channel">📍 ขยายช่องทาง</button>
+          <button class="preset-chip" data-preset="live_gwp">🎁 Live + GWP Promo</button>
         </div>
 
         <button class="run-btn" id="run-survey-btn" style="margin-top:14px;">
@@ -1567,6 +1569,12 @@
       options: ['Smart Vending Machine ตาม BTS/MRT', 'Quick Commerce (GrabMart/LINE MAN)', 'เปิดร้านใน 7-Eleven ทุกสาขา', 'Flagship Store ในสยาม/ICONSIAM'],
       qtype: 'multiple_choice',
       context: ''
+    },
+    live_gwp: {
+      question: 'ถ้า LA GLACE จัดโปรใน Live "ซื้อครบ 690 บาท แถมกระเป๋าเครื่องสำอางมูลค่า 490 บาท" + คูปองใน Live ลด 200 บาทเมื่อซื้อครบ 690 — มีโอกาสที่จะซื้อแค่ไหน? และจะซื้ออะไรให้ครบยอด?',
+      options: ['ซื้อแน่นอน + จัดเต็ม', 'ซื้อให้ครบยอดพอดี', 'รอดูก่อนแล้วค่อยตัดสินใจ', 'ไม่ซื้อ — ยอดสูงเกิน'],
+      qtype: 'compound',
+      context: 'โปรจัด 4-6 มิถุนายน 2569 (June 4-6, 2026). คูปอง 200 บาทใช้ได้ใน Live เท่านั้น. กระเป๋ามูลค่า 490 บาท. มี cap 1 คูปอง / 1 user. ต้องวิเคราะห์ basket composition ที่ persona จะใส่ตะกร้าให้ครบ 690 พร้อมแยกตาม segment ด้วย.'
     }
   };
 
@@ -1861,6 +1869,46 @@
       });
     });
 
+    // === Secondary Analyses (compound questions: basket, sub-distributions) ===
+    if (r.secondary_analyses && r.secondary_analyses.length) {
+      r.secondary_analyses.forEach((sa, idx) => {
+        const card = document.createElement('div');
+        card.className = 'survey-card';
+        const figNum = String(idx + 2).padStart(2, '0');
+        card.innerHTML = `
+          <div class="kicker">Figure ${figNum}</div>
+          <h3>${escapeHtml(sa.title || 'Secondary Analysis')}</h3>
+          ${sa.subtitle ? `<div style="font-family:var(--serif); font-style:italic; color:var(--ink-soft); font-size:14px; margin-bottom:14px;">${escapeHtml(sa.subtitle)}</div>` : ''}
+        `;
+        const tabsEl = document.createElement('div');
+        tabsEl.className = 'segment-tabs';
+        const allBtn = makeSegTab('overall', '📈 รวม', null);
+        allBtn.classList.add('active');
+        tabsEl.appendChild(allBtn);
+        if (sa.by_segment) {
+          window.LA_GLACE_SURVEY.segments.forEach(s => {
+            if (sa.by_segment[s.id]) {
+              tabsEl.appendChild(makeSegTab(s.id, `${s.icon} ${s.name_th}`, s.color));
+            }
+          });
+        }
+        card.appendChild(tabsEl);
+        const chart = document.createElement('div');
+        chart.id = `dist-chart-sec-${idx}`;
+        card.appendChild(chart);
+        el.appendChild(card);
+
+        renderSecondaryChart(sa, idx, 'overall');
+        tabsEl.querySelectorAll('.segment-tab').forEach(t => {
+          t.addEventListener('click', () => {
+            tabsEl.querySelectorAll('.segment-tab').forEach(x => x.classList.remove('active'));
+            t.classList.add('active');
+            renderSecondaryChart(sa, idx, t.dataset.seg);
+          });
+        });
+      });
+    }
+
     // === Top Themes ===
     if (r.top_themes && r.top_themes.length) {
       const t = document.createElement('div');
@@ -1929,12 +1977,30 @@
     let dist, color;
     if (segId === 'overall' || !r.by_segment || !r.by_segment[segId]) {
       dist = r.overall_distribution || {};
-      color = '#1a1a1a';
+      color = '#1a1718';
     } else {
       dist = r.by_segment[segId];
       const seg = window.LA_GLACE_SURVEY.getSegment(segId);
-      color = seg ? seg.color : '#1a1a1a';
+      color = seg ? seg.color : '#1a1718';
     }
+    drawDist(target, dist, color);
+  }
+
+  function renderSecondaryChart(sa, idx, segId) {
+    const target = document.getElementById(`dist-chart-sec-${idx}`);
+    let dist, color;
+    if (segId === 'overall' || !sa.by_segment || !sa.by_segment[segId]) {
+      dist = sa.distribution || {};
+      color = '#c8341a'; // editorial red for secondary
+    } else {
+      dist = sa.by_segment[segId];
+      const seg = window.LA_GLACE_SURVEY.getSegment(segId);
+      color = seg ? seg.color : '#c8341a';
+    }
+    drawDist(target, dist, color);
+  }
+
+  function drawDist(target, dist, color) {
     const entries = Object.entries(dist).sort((a, b) => b[1] - a[1]);
     const max = Math.max(...entries.map(e => e[1]), 1);
     target.innerHTML = entries.map(([k, v]) => `

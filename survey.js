@@ -120,21 +120,39 @@ ${JSON.stringify(S.research_priors, null, 2)}
 
 # Output Format — ตอบเป็น JSON เท่านั้น (ไม่มี text นอก JSON)
 {
-  "question_type": "multiple_choice | rating_1_5 | open_ended | yes_no",
+  "question_type": "multiple_choice | rating_1_5 | open_ended | yes_no | compound",
   "overall_distribution": {
     "option_label_1": 45,
     "option_label_2": 32,
     "...": "..."
   },
   "by_segment": {
-    "strategic_pro":           { "option_label_1": 60, "option_label_2": 25, "...": "..." },
-    "influencer_entrepreneur": { "option_label_1": 40, "option_label_2": 35, "...": "..." },
-    "status_seeker":           { "option_label_1": 30, "option_label_2": 45, "...": "..." },
-    "balanced_lifestyle":      { "option_label_1": 55, "option_label_2": 30, "...": "..." }
+    "strategic_pro":           { "option_label_1": 60, "option_label_2": 25 },
+    "influencer_entrepreneur": { "option_label_1": 40, "option_label_2": 35 },
+    "status_seeker":           { "option_label_1": 30, "option_label_2": 45 },
+    "balanced_lifestyle":      { "option_label_1": 55, "option_label_2": 30 }
   },
+  "secondary_analyses": [
+    {
+      "title": "ตัวอย่าง: Basket Composition (สำหรับยอด 690 บาท)",
+      "subtitle": "อะไรที่ persona จะใส่ตะกร้าเพื่อให้ครบยอดโปร",
+      "distribution": {
+        "Ph Blush + Toner Pad + 1 Sachet (~698)": 35,
+        "Toner Pad + Concealer + 1 Sachet (~708)": 22,
+        "2× Toner Pad + 1 Sachet (~739)": 15,
+        "Ph Blush + Lip ไอติม + 1 Sachet (~706)": 12,
+        "อื่นๆ": 16
+      },
+      "by_segment": {
+        "strategic_pro": { "...": 50 },
+        "influencer_entrepreneur": { "...": 40 },
+        "status_seeker": { "...": 30 },
+        "balanced_lifestyle": { "...": 60 }
+      }
+    }
+  ],
   "top_themes": [
-    { "theme": "...", "weight_pct": 35, "segments": ["strategic_pro"], "sample_quote": "..." },
-    { "theme": "...", "weight_pct": 28, "segments": ["status_seeker","influencer_entrepreneur"], "sample_quote": "..." }
+    { "theme": "...", "weight_pct": 35, "segments": ["strategic_pro"], "sample_quote": "..." }
   ],
   "predicted_satisfaction_score": 3.8,
   "confidence": "high | medium | low",
@@ -148,7 +166,9 @@ ${JSON.stringify(S.research_priors, null, 2)}
 - "predicted_satisfaction_score" ใช้กับคำถามเกี่ยวกับสินค้า/โปรโมชั่น (1-5); ถ้าคำถามไม่เข้าข่ายให้ return null
 - sample_quote เป็นภาษาไทย — สะท้อนน้ำเสียงของ persona ในกลุ่มนั้น
 - ถ้าคำถามเป็น "open_ended" ให้ใช้ themes แทน option labels ใน distribution
-- ทุก response ต้อง valid JSON parsable — ไม่ใช้ comment, ไม่มี trailing comma`;
+- **ถ้าคำถามมีหลายมิติ** (เช่น "จะซื้อไหม + ซื้ออะไร" / "พอใจไหม + ทำไม" / "เลือกอันไหน + ราคา OK ไหม") ให้ใส่ใน secondary_analyses (array) แต่ละ object เป็น 1 มิติเพิ่มเติม. **ห้ามละเลย dimension ใดๆ ในคำถาม**
+- ถ้าคำถามเกี่ยวกับ basket / what to buy / จัด combo ใช้ product_catalog ใน brand_context จัด basket จริง พร้อมราคารวม
+- ทุก response ต้อง valid JSON parsable — ไม่ใช้ comment, ไม่มี trailing comma, ไม่ใส่ markdown fence`;
   }
 
   function buildUserPrompt(question, options, questionType, context) {
@@ -176,7 +196,7 @@ ${JSON.stringify(S.research_priors, null, 2)}
 
     const body = {
       model: opts.model || "claude-sonnet-4-6",
-      max_tokens: 4000,
+      max_tokens: 8000,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }]
     };
@@ -216,23 +236,58 @@ ${JSON.stringify(S.research_priors, null, 2)}
   }
 
   // ==============================================================
-  // JSON EXTRACTION (handles markdown fences, extra text)
+  // JSON EXTRACTION (handles markdown fences, prose, trailing commas)
   // ==============================================================
   function extractJson(text) {
-    // 1) try fenced block
+    // 1) Try fenced block (```json or ```)
     const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (fenceMatch) {
-      try { return JSON.parse(fenceMatch[1]); } catch (e) { /* fallthrough */ }
+      try { return JSON.parse(fenceMatch[1]); } catch (e) {
+        try { return JSON.parse(cleanJson(fenceMatch[1])); } catch (e2) { /* keep going */ }
+      }
     }
-    // 2) try first {...} block
-    const firstBrace = text.indexOf("{");
-    const lastBrace = text.lastIndexOf("}");
-    if (firstBrace >= 0 && lastBrace > firstBrace) {
-      const slice = text.slice(firstBrace, lastBrace + 1);
-      try { return JSON.parse(slice); } catch (e) { /* fallthrough */ }
+    // 2) Try first balanced {…} block (handles JSON embedded in prose)
+    const candidate = extractBalancedBraces(text);
+    if (candidate) {
+      try { return JSON.parse(candidate); } catch (e) {
+        try { return JSON.parse(cleanJson(candidate)); } catch (e2) { /* keep going */ }
+      }
     }
-    // 3) raw parse
-    return JSON.parse(text);
+    // 3) Raw + cleaned
+    try { return JSON.parse(text); } catch (e) {}
+    try { return JSON.parse(cleanJson(text)); } catch (e) {}
+    throw new Error("Could not parse JSON from response");
+  }
+
+  function cleanJson(s) {
+    return s
+      .replace(/,(\s*[}\]])/g, "$1")   // trailing commas
+      .replace(/\bNaN\b/g, "null")
+      .replace(/\bundefined\b/g, "null")
+      .replace(/\/\/[^\n]*/g, "")       // // comments
+      .replace(/\/\*[\s\S]*?\*\//g, ""); // /* */ comments
+  }
+
+  function extractBalancedBraces(text) {
+    const first = text.indexOf("{");
+    if (first < 0) return null;
+    let depth = 0, inStr = false, esc = false;
+    for (let i = first; i < text.length; i++) {
+      const c = text[i];
+      if (inStr) {
+        if (esc) { esc = false; continue; }
+        if (c === "\\") { esc = true; continue; }
+        if (c === '"') inStr = false;
+        continue;
+      }
+      if (c === '"') { inStr = true; continue; }
+      if (c === "{") depth++;
+      else if (c === "}") {
+        depth--;
+        if (depth === 0) return text.slice(first, i + 1);
+      }
+    }
+    return null;
   }
 
   // ==============================================================
