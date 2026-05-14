@@ -9,20 +9,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Serif+Thai:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper:        #faf7f1;
-    --paper-2:      #f3ede0;
-    --paper-3:      #e8e0cf;
-    --ink:          #1a1718;
-    --ink-soft:     #4a4540;
-    --ink-mute:     #8a8175;
-    --ink-faint:    #b8b1a3;
-    --rule:         #1a1718;
-    --hair:         #d4cbb5;
-    --red:          #c8341a;
-    --red-dark:     #8b1f10;
-    --gold:         #b08d57;
-    --blush:        #f5d0d5;
-    --pop:          #ff5e8e;
+    --paper:        #ffffff;
+    --paper-2:      #faf5f8;
+    --paper-3:      #e8e2e6;
+    --ink:          #000000;
+    --ink-soft:     #1a1a1a;
+    --ink-mute:     #595959;
+    --ink-faint:    #b3b3b3;
+    --rule:         #000000;
+    --hair:         #f0e5ea;
+    --red:          #ec4899;    /* hot pink — primary accent */
+    --red-dark:     #be185d;    /* deep pink */
+    --gold:         #f9a8d4;    /* mid pink */
+    --blush:        #fce4ec;
+    --pop:          #fbb6ce;    /* LA GLACE pastel pink (from coupon) */
 
     /* legacy aliases — kept for components that referenced these */
     --bg:           var(--paper);
@@ -48,11 +48,11 @@
   body {
     font-family: var(--sans);
     background:
-      radial-gradient(ellipse 1200px 600px at 50% -10%, var(--paper-2), transparent 70%),
+      radial-gradient(ellipse 1400px 700px at 50% -10%, var(--blush), transparent 70%),
       var(--paper);
     color: var(--ink);
     overflow: hidden;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }
@@ -79,20 +79,20 @@
     font-family: var(--sans);
     text-transform: uppercase;
     letter-spacing: 0.18em;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--ink-soft);
   }
   .byline {
     font-family: var(--serif);
     font-style: italic;
-    font-size: 13px;
+    font-size: 15px;
     color: var(--ink-soft);
   }
   .pull-quote {
     font-family: var(--serif);
     font-style: italic;
-    font-size: 19px;
+    font-size: 22px;
     line-height: 1.35;
     color: var(--ink);
     border-left: 3px solid var(--red);
@@ -148,7 +148,7 @@
   }
   .brand {
     font-family: var(--serif);
-    font-size: 26px;
+    font-size: 30px;
     font-weight: 900;
     letter-spacing: -0.02em;
     line-height: 0.95;
@@ -162,7 +162,7 @@
   }
   .brand-sub {
     font-family: var(--sans);
-    font-size: 9px;
+    font-size: 10px;
     color: var(--ink-soft);
     margin-top: 6px;
     text-transform: uppercase;
@@ -218,7 +218,7 @@
   .persona-name {
     font-family: var(--serif);
     font-weight: 700;
-    font-size: 17px;
+    font-size: 20px;
     line-height: 1.1;
     display: flex;
     align-items: center;
@@ -226,7 +226,7 @@
   }
   .persona-segment {
     font-family: var(--sans);
-    font-size: 9px;
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.18em;
     color: var(--ink-soft);
@@ -234,10 +234,10 @@
     font-weight: 600;
   }
   .persona-tagline {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--ink-soft);
     margin-top: 4px;
-    line-height: 1.35;
+    line-height: 1.4;
     font-style: italic;
   }
 
@@ -283,13 +283,13 @@
   .chat-header-name {
     font-family: var(--serif);
     font-weight: 900;
-    font-size: 32px;
+    font-size: 37px;
     line-height: 1;
     letter-spacing: -0.02em;
   }
   .chat-header-status {
     font-family: var(--sans);
-    font-size: 10px;
+    font-size: 11px;
     color: var(--ink-soft);
     text-transform: uppercase;
     letter-spacing: 0.18em;
@@ -379,23 +379,23 @@
   .msg-head .qa-label {
     font-family: var(--serif);
     font-weight: 900;
-    font-size: 26px;
+    font-size: 30px;
     line-height: 1;
     color: var(--red);
-    width: 26px;
+    width: 30px;
     flex-shrink: 0;
   }
   .msg.me .msg-head .qa-label { color: var(--ink); }
-  .msg-head .avatar { width: 32px; height: 32px; }
+  .msg-head .avatar { width: 36px; height: 36px; }
   .msg-head .who {
     font-family: var(--serif);
     font-weight: 700;
-    font-size: 15px;
+    font-size: 17px;
     color: var(--ink);
   }
   .msg-head .who-sub {
     font-family: var(--sans);
-    font-size: 9px;
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.18em;
     color: var(--ink-mute);
@@ -403,9 +403,9 @@
     font-weight: 600;
   }
   .bubble {
-    padding: 4px 0 8px 36px;
+    padding: 4px 0 8px 40px;
     font-family: var(--sans);
-    font-size: 15px;
+    font-size: 17px;
     line-height: 1.7;
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -424,9 +424,9 @@
   .msg.me .bubble {
     font-family: var(--serif);
     font-style: italic;
-    font-size: 17px;
+    font-size: 19px;
     color: var(--ink);
-    padding-left: 36px;
+    padding-left: 40px;
   }
   .msg.me .bubble::before {
     content: "";
@@ -439,7 +439,7 @@
   .msg.them .bubble::first-letter {
     font-family: var(--serif);
     font-weight: 900;
-    font-size: 44px;
+    font-size: 50px;
     line-height: 0.85;
     float: left;
     padding: 4px 8px 0 0;
@@ -451,7 +451,7 @@
   }
   .msg-time {
     font-family: var(--mono);
-    font-size: 9px;
+    font-size: 10px;
     color: var(--ink-mute);
     margin-top: 4px;
     text-transform: uppercase;
@@ -511,28 +511,28 @@
     background: transparent;
     resize: none;
     font-family: inherit;
-    font-size: 14px;
-    line-height: 1.4;
-    max-height: 120px;
+    font-size: 16px;
+    line-height: 1.45;
+    max-height: 140px;
     padding: 6px 0;
     outline: none;
     color: var(--text);
   }
   .send-btn {
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    background: var(--red);
+    background: var(--ink);
     color: var(--paper);
-    border: none;
+    border: 2px solid var(--ink);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: opacity 0.15s;
+    transition: background 0.15s;
   }
-  .send-btn:hover { background: var(--red-dark); }
+  .send-btn:hover { background: var(--red); border-color: var(--red); }
   .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .send-btn svg { width: 18px; height: 18px; }
 
@@ -609,7 +609,7 @@
   }
   .masthead-left, .masthead-right {
     font-family: var(--sans);
-    font-size: 10px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.22em;
     color: var(--ink-soft);
@@ -619,7 +619,7 @@
   .masthead-title {
     font-family: var(--serif);
     font-weight: 900;
-    font-size: 28px;
+    font-size: 32px;
     letter-spacing: -0.02em;
     line-height: 1;
     text-align: center;
@@ -633,7 +633,7 @@
   .masthead-sub {
     font-family: var(--serif);
     font-style: italic;
-    font-size: 11px;
+    font-size: 13px;
     color: var(--ink-soft);
     text-align: center;
     margin-top: 2px;
@@ -653,7 +653,7 @@
     border-bottom: 3px solid transparent;
     cursor: pointer;
     font-family: var(--sans);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--ink-mute);
     text-transform: uppercase;
@@ -672,7 +672,7 @@
     font-weight: 400;
     color: var(--red);
     margin-right: 4px;
-    font-size: 13px;
+    font-size: 15px;
     text-transform: none;
     letter-spacing: 0;
   }
@@ -691,7 +691,7 @@
   }
   .survey-side h4 {
     font-family: var(--serif);
-    font-size: 18px;
+    font-size: 21px;
     color: var(--ink);
     margin-bottom: 10px;
     font-weight: 900;
@@ -701,7 +701,7 @@
   }
   .survey-side label {
     font-family: var(--sans);
-    font-size: 10px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.15em;
     color: var(--ink-soft);
@@ -711,10 +711,10 @@
   }
   .survey-side input, .survey-side textarea, .survey-side select {
     width: 100%;
-    padding: 10px 12px;
+    padding: 11px 14px;
     border: 1px solid var(--ink);
     border-radius: 0;
-    font-size: 13px;
+    font-size: 15px;
     font-family: var(--sans);
     background: var(--paper);
     color: var(--ink);
@@ -766,7 +766,7 @@
   }
   .survey-card h3 {
     font-family: var(--serif);
-    font-size: 24px;
+    font-size: 28px;
     margin-bottom: 12px;
     font-weight: 900;
     letter-spacing: -0.01em;
@@ -785,17 +785,17 @@
   }
   .survey-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .qtype-pill {
-    padding: 6px 14px;
+    padding: 7px 16px;
     border: 1px solid var(--ink);
     border-radius: 0;
     background: var(--paper);
     cursor: pointer;
-    font-size: 10px;
+    font-size: 12px;
     color: var(--ink);
     font-family: var(--sans);
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    font-weight: 600;
+    font-weight: 700;
   }
   .qtype-pill.active {
     background: var(--ink);
@@ -804,14 +804,14 @@
   }
 
   .run-btn {
-    background: var(--red);
-    color: var(--paper);
-    border: 1px solid var(--ink);
+    background: var(--pop);
+    color: var(--ink);
+    border: 2px solid var(--ink);
     padding: 14px 28px;
     border-radius: 0;
     font-family: var(--sans);
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 800;
     cursor: pointer;
     margin-top: 8px;
     text-transform: uppercase;
@@ -837,11 +837,11 @@
   /* Distribution chart — editorial infographic style */
   .dist-row {
     display: grid;
-    grid-template-columns: 240px 1fr 60px;
+    grid-template-columns: 260px 1fr 70px;
     gap: 14px;
     align-items: center;
-    padding: 8px 0;
-    font-size: 13px;
+    padding: 9px 0;
+    font-size: 15px;
     border-bottom: 1px dotted var(--ink-faint);
   }
   .dist-row .label {
@@ -871,7 +871,7 @@
     font-style: italic;
     font-variant-numeric: tabular-nums;
     color: var(--ink);
-    font-size: 18px;
+    font-size: 21px;
     font-weight: 700;
   }
 
@@ -882,17 +882,17 @@
     flex-wrap: wrap;
   }
   .segment-tab {
-    padding: 7px 14px;
+    padding: 8px 16px;
     border: 1px solid var(--ink);
     border-radius: 0;
     background: var(--paper);
     cursor: pointer;
-    font-size: 10px;
+    font-size: 12px;
     color: var(--ink);
     font-family: var(--sans);
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    font-weight: 600;
+    font-weight: 700;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -919,25 +919,25 @@
   .theme-card .name {
     font-family: var(--serif);
     font-weight: 700;
-    font-size: 17px;
+    font-size: 19px;
     line-height: 1.2;
   }
   .theme-card .weight {
     font-family: var(--serif);
     font-style: italic;
-    font-size: 22px;
+    font-size: 25px;
     color: var(--red);
     font-weight: 900;
   }
   .theme-card .quote {
     font-family: var(--serif);
     font-style: italic;
-    font-size: 14px;
+    font-size: 16px;
     color: var(--ink);
     border-left: 0;
     padding-left: 0;
     margin-top: 8px;
-    line-height: 1.5;
+    line-height: 1.55;
   }
   .theme-card .quote::before { content: "\"" attr(data-q); font-size: 28px; line-height: 0; color: var(--red); vertical-align: -10px; margin-right: 4px; }
   .theme-card .segs {
@@ -961,15 +961,15 @@
   .insight-box::before {
     content: "EDITOR'S NOTE";
     position: absolute;
-    top: -10px; left: 16px;
-    background: var(--red);
-    color: var(--paper);
+    top: -12px; left: 16px;
+    background: var(--pop);
+    color: var(--ink);
     font-family: var(--sans);
-    font-size: 9px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.2em;
-    font-weight: 700;
-    padding: 4px 10px;
+    font-weight: 800;
+    padding: 5px 12px;
   }
   .insight-box .label {
     font-family: var(--sans);
@@ -983,7 +983,7 @@
   }
   .insight-box .text {
     font-family: var(--serif);
-    font-size: 18px;
+    font-size: 21px;
     line-height: 1.4;
     color: var(--paper);
     font-style: italic;
@@ -992,9 +992,9 @@
   .ro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
   .ro-card {
     border-radius: 0;
-    padding: 16px;
-    font-size: 13px;
-    line-height: 1.5;
+    padding: 18px;
+    font-size: 15px;
+    line-height: 1.55;
     background: var(--paper-2);
     border: 1px solid var(--ink);
   }
@@ -1002,7 +1002,7 @@
   .ro-card.opps { border-top: 4px solid var(--gold); }
   .ro-card h5 {
     font-family: var(--serif);
-    font-size: 18px;
+    font-size: 21px;
     margin-bottom: 8px;
     font-weight: 900;
     letter-spacing: -0.01em;
@@ -1030,7 +1030,7 @@
   .satisfaction-pill .score {
     font-family: var(--serif);
     font-style: italic;
-    font-size: 22px;
+    font-size: 26px;
     color: var(--red);
     font-variant-numeric: tabular-nums;
     font-weight: 900;
@@ -1057,11 +1057,11 @@
   .history-item .ts { color: var(--text-muted); font-size: 10px; }
 
   .preset-chip {
-    padding: 6px 12px;
+    padding: 7px 13px;
     background: var(--paper);
     border-radius: 0;
     font-family: var(--sans);
-    font-size: 10px;
+    font-size: 12px;
     cursor: pointer;
     color: var(--ink);
     border: 1px solid var(--ink-faint);
@@ -1069,7 +1069,7 @@
     letter-spacing: 0.12em;
     font-weight: 600;
   }
-  .preset-chip:hover { border-color: var(--red); color: var(--red); }
+  .preset-chip:hover { border-color: var(--red); color: var(--red); background: var(--blush); }
 
   /* SUGGESTIONS in chat empty state */
   .suggestion {
@@ -1077,15 +1077,15 @@
     background: var(--paper) !important;
     border: 1px solid var(--ink) !important;
     border-radius: 0 !important;
-    padding: 12px 14px !important;
-    font-size: 12px !important;
+    padding: 13px 16px !important;
+    font-size: 14px !important;
   }
   .suggestion:hover { background: var(--paper-2) !important; box-shadow: -3px 3px 0 var(--ink); }
 
   .empty-state h2 {
     font-family: var(--serif) !important;
     font-weight: 900 !important;
-    font-size: 28px !important;
+    font-size: 32px !important;
     letter-spacing: -0.02em;
   }
 
