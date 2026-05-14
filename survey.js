@@ -118,6 +118,15 @@ ${JSON.stringify(S.research_priors, null, 2)}
 3. รวมผลเป็น distribution
 4. สรุป insight + key reasons เป็น actionable insight
 
+# 👥 ทำให้ Personas รู้สึกเป็นมนุษย์จริง (ไม่ใช่แค่ตัวเลข)
+แต่ละ persona ในเลขที่ ${S.personas.length} คนนี้ — เป็นคนจริงที่มี:
+- งบประมาณรายเดือนจริง (จากข้อมูล income_k)
+- ภาวะอารมณ์จริง (emotion)
+- ปัญหาในชีวิตจริง (วัยทำงาน/ฝึกงาน/ความกดดันสังคม)
+- ความเห็นที่อาจ "ไม่เหมือนคนอื่นในกลุ่ม" (แสดงความคิดส่วนตัวได้)
+- ข้อเสนอแนะที่อยากบอกแบรนด์โดยตรง (constructive, จากมุมผู้ใช้จริง)
+เวลาพูด — ให้น้ำเสียงสะท้อนตัวตน (มีอารมณ์, sarcasm, ไม่อ้อมค้อม), ไม่ใช่ภาษา formal ของ AI
+
 # Output Format — ตอบเป็น JSON เท่านั้น (ไม่มี text นอก JSON)
 {
   "question_type": "multiple_choice | rating_1_5 | open_ended | yes_no | compound",
@@ -154,6 +163,25 @@ ${JSON.stringify(S.research_priors, null, 2)}
   "top_themes": [
     { "theme": "...", "weight_pct": 35, "segments": ["strategic_pro"], "sample_quote": "..." }
   ],
+  "persona_voices": [
+    {
+      "persona_id": "SS01",
+      "persona_name": "ใบเฟิร์น",
+      "segment": "status_seeker",
+      "stance": "positive | mixed | negative",
+      "opinion": "ความเห็นยาว 2-4 ประโยค ภาษาพูดของ persona นั้น — มีอารมณ์ มีเหตุผลส่วนตัว (เช่น 'จะซื้อนะแต่กังวลเรื่อง...' / 'ไม่ซื้อหรอก เพราะตอนนี้...' / 'เคยซื้อแล้วเจอ pain ที่...')",
+      "suggestion": "ข้อเสนอจาก persona นี้ถึงแบรนด์ — สั้น 1 ประโยค (เช่น 'ทำขนาดเล็กลงเพื่อให้ซื้อง่าย' / 'เพิ่ม shade ที่ดูเป็นธรรมชาติ')"
+    }
+  ],
+  "marketing_recommendations": [
+    {
+      "priority": "high | medium | low",
+      "title": "ชื่อ action ที่แนะนำ",
+      "rationale": "เพราะอะไร — อ้างอิงจากเสียง persona / data ใน research_priors",
+      "from_segments": ["strategic_pro", "status_seeker"],
+      "estimated_impact": "เพิ่ม conversion ~15% / ลด churn / สร้าง buzz บน TikTok"
+    }
+  ],
   "predicted_satisfaction_score": 3.8,
   "confidence": "high | medium | low",
   "key_insight": "1-2 ประโยคสรุปสิ่งที่แบรนด์ควรทำต่อ",
@@ -166,8 +194,11 @@ ${JSON.stringify(S.research_priors, null, 2)}
 - "predicted_satisfaction_score" ใช้กับคำถามเกี่ยวกับสินค้า/โปรโมชั่น (1-5); ถ้าคำถามไม่เข้าข่ายให้ return null
 - sample_quote เป็นภาษาไทย — สะท้อนน้ำเสียงของ persona ในกลุ่มนั้น
 - ถ้าคำถามเป็น "open_ended" ให้ใช้ themes แทน option labels ใน distribution
-- **ถ้าคำถามมีหลายมิติ** (เช่น "จะซื้อไหม + ซื้ออะไร" / "พอใจไหม + ทำไม" / "เลือกอันไหน + ราคา OK ไหม") ให้ใส่ใน secondary_analyses (array) แต่ละ object เป็น 1 มิติเพิ่มเติม. **ห้ามละเลย dimension ใดๆ ในคำถาม**
+- **ถ้าคำถามมีหลายมิติ** ให้ใส่ใน secondary_analyses (array). **ห้ามละเลย dimension ใดๆ ในคำถาม**
 - ถ้าคำถามเกี่ยวกับ basket / what to buy / จัด combo ใช้ product_catalog ใน brand_context จัด basket จริง พร้อมราคารวม
+- **persona_voices ต้องมี 6-10 คน** — เลือกจาก panel จริง (ใช้ persona_id จริง เช่น SP01, IE03, SS05, BL02) ครอบคลุมทุก segment และมีทั้ง positive/mixed/negative stance
+- persona voice ต้องเขียนในน้ำเสียงของคนนั้นจริงๆ (ใช้ "เรา/ฉัน/กู" ตามอายุ/ความเป็นกันเอง ของ persona)
+- **marketing_recommendations ต้องมี 4-7 ข้อ** — แต่ละข้อต้อง actionable + อ้าง persona/data ที่มาที่ไป + ระบุ priority
 - ทุก response ต้อง valid JSON parsable — ไม่ใช้ comment, ไม่มี trailing comma, ไม่ใส่ markdown fence`;
   }
 
@@ -196,7 +227,7 @@ ${JSON.stringify(S.research_priors, null, 2)}
 
     const body = {
       model: opts.model || "claude-sonnet-4-6",
-      max_tokens: 8000,
+      max_tokens: 12000,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }]
     };
