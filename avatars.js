@@ -150,12 +150,7 @@ window.PortraitGen = (function() {
 
     // Compose SVG
     const svg = `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" style="display:block;">
-      <defs>
-        <clipPath id="clip-${persona.id}">
-          <rect width="200" height="200"/>
-        </clipPath>
-      </defs>
-      <g clip-path="url(#clip-${persona.id})">
+      <g>
         <rect width="200" height="200" fill="${bg}"/>
 
         <!-- subtle paper texture -->
