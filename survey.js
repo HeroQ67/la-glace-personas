@@ -118,14 +118,30 @@ ${JSON.stringify(S.research_priors, null, 2)}
 3. รวมผลเป็น distribution
 4. สรุป insight + key reasons เป็น actionable insight
 
-# 👥 ทำให้ Personas รู้สึกเป็นมนุษย์จริง (ไม่ใช่แค่ตัวเลข)
-แต่ละ persona ในเลขที่ ${S.personas.length} คนนี้ — เป็นคนจริงที่มี:
-- งบประมาณรายเดือนจริง (จากข้อมูล income_k)
-- ภาวะอารมณ์จริง (emotion)
-- ปัญหาในชีวิตจริง (วัยทำงาน/ฝึกงาน/ความกดดันสังคม)
-- ความเห็นที่อาจ "ไม่เหมือนคนอื่นในกลุ่ม" (แสดงความคิดส่วนตัวได้)
-- ข้อเสนอแนะที่อยากบอกแบรนด์โดยตรง (constructive, จากมุมผู้ใช้จริง)
-เวลาพูด — ให้น้ำเสียงสะท้อนตัวตน (มีอารมณ์, sarcasm, ไม่อ้อมค้อม), ไม่ใช่ภาษา formal ของ AI
+# 🎙️ QUALITATIVE INTERVIEW MODE — สำคัญที่สุด
+
+คุณกำลังจะ "transcribe" บทสัมภาษณ์ qualitative กับ ${S.personas.length} คนนี้ — ไม่ใช่เขียน AI report
+ห้ามใช้ภาษาทางการ / generic / สวยงามแบบ marketing slide
+
+**Persona ทุกคนมีชีวิตจริงที่:**
+- รายได้ ${"$"}{income_k}k/เดือน → งบเครื่องสำอางมีจำกัด → คิดเรื่องเงิน
+- emotion baseline (stressed / mixed / balanced) → ส่งผลกับวิธีพูด
+- มีประสบการณ์เคยซื้อ/เคยใช้คู่แข่ง (Romand / 3CE / Cathy Doll / Peripera / Mistine / Essence)
+- มีบริบทชีวิตเฉพาะ (เพิ่งย้ายเมือง / เริ่มงานแรก / ผ่อนหนี้ / ผ่อนคอนโด)
+- บางคนเคยเจอ pain จากแบรนด์ (Toner Pad แตกในกระเป๋า / ไลฟ์รอนาน / ของหมดบ่อย)
+
+**เวลาเขียน voice / suggestion:**
+- น้ำเสียง: คนจริง — slang, ภาษาปาก ("ขายดีปะ", "แม่ๆ", "ไม่ไหว", "เก็บไว้ก่อน")
+- มี digression: เล่าเรื่องเล็กน้อย ("เดือนนี้เพิ่งซื้อ Toner Pad ไป ยังใช้ไม่หมดเลย แต่ถ้าเป็น Live โปรนี้...")
+- มี "but / if / ถ้า..." — คนจริงไม่ตัดสินตรงๆ 100%, มีเงื่อนไข
+- comparison เฉพาะ: ระบุชื่อสินค้า/แบรนด์ที่ใช้อยู่จริง ("ใช้ Romand Glasting อยู่ แต่ถ้า LA GLACE...")
+- emotion ตามเบสไลน์: stressed → กังวลเงิน, energetic → ตื่นเต้นแต่ก็กลัวพลาด
+- ห้าม generic — แต่ละคนต้องมี angle ที่ unique (จากชีวิตของเขา ไม่ใช่ summary ของ segment)
+
+**ข้อเสนอแนะ (suggestion) ต้องมีโครงสร้าง WHAT × WHY × HOW:**
+- WHAT: แบรนด์ควรเปลี่ยน/เพิ่ม/ลดอะไร (specific — ไม่ใช่ "ปรับ packaging" แต่ "เปลี่ยน flip-top เป็น screw-on")
+- WHY: ทำไมจาก lens ของ persona นี้ (อ้างประสบการณ์ส่วนตัวของเขา)
+- HOW: ทำยังไง — ยกตัวอย่างเฉพาะ ("เหมือนที่ Romand ทำกับ Sheer Lip ตอน 11.11 ปีก่อน")
 
 # Output Format — ตอบเป็น JSON เท่านั้น (ไม่มี text นอก JSON)
 {
@@ -169,15 +185,26 @@ ${JSON.stringify(S.research_priors, null, 2)}
       "persona_name": "ใบเฟิร์น",
       "segment": "status_seeker",
       "stance": "positive | mixed | negative",
-      "opinion": "ความเห็นยาว 2-4 ประโยค ภาษาพูดของ persona นั้น — มีอารมณ์ มีเหตุผลส่วนตัว (เช่น 'จะซื้อนะแต่กังวลเรื่อง...' / 'ไม่ซื้อหรอก เพราะตอนนี้...' / 'เคยซื้อแล้วเจอ pain ที่...')",
-      "suggestion": "ข้อเสนอจาก persona นี้ถึงแบรนด์ — สั้น 1 ประโยค (เช่น 'ทำขนาดเล็กลงเพื่อให้ซื้อง่าย' / 'เพิ่ม shade ที่ดูเป็นธรรมชาติ')"
+      "purchase_intent": 7,
+      "life_context": "1 ประโยค — บริบทชีวิตช่วงนี้ (เช่น 'เดือนนี้เพิ่งซื้อ Toner Pad ไป + กำลังเก็บเงินซื้อ iPhone' / 'เพิ่งย้ายมาทำงานในกรุงเทพ ค่าครองชีพสูงมาก')",
+      "opinion": "4-7 ประโยคยาว — น้ำเสียงคนจริง slang/ภาษาปาก, มี digression, มี 'but/if/ถ้า', อ้าง competitor brand จริง, สะท้อนอารมณ์ตาม baseline. ห้ามเป็นสรุปแบบ AI",
+      "comparison_brand": "Romand Glasting (เทียบกับ Ph Blush)",
+      "key_objection": "1 ประโยค — เหตุผลเฉพาะที่อาจไม่ซื้อ/ลังเล (เช่น 'กลัวคูปองโปรหายก่อนที่จะกดทัน' / 'ใช้สีนี้แล้วผิวซีดเกินไป'). null ถ้าไม่มี",
+      "suggestion": {
+        "what": "ระบุเฉพาะเลย ห้าม vague",
+        "why": "จาก lens persona นี้",
+        "how": "ตัวอย่างเฉพาะ ระบุ tactical detail หรือ benchmark"
+      }
     }
   ],
   "marketing_recommendations": [
     {
       "priority": "high | medium | low",
-      "title": "ชื่อ action ที่แนะนำ",
-      "rationale": "เพราะอะไร — อ้างอิงจากเสียง persona / data ใน research_priors",
+      "title": "Action verb + specific thing (e.g. 'Push LINE OA noti 3 days pre-Live with personalized 50฿ code')",
+      "rationale": "2-3 ประโยค: ใครพูด (อ้าง persona/segment) + ทำไมสำคัญ + อ้าง data prior หรือ trend",
+      "how_to_execute": "1-2 ประโยค tactical: ทำยังไง step-by-step (เช่น 'Day -3: ส่ง noti ระบุชื่อ + Hero Product + countdown; Day -1: ส่ง reminder + คูปองส่วนตัว')",
+      "trade_off": "ความเสี่ยง/ทางเลือก (เช่น 'ถ้าส่งบ่อยเกินจะดู spam — แนะนำ 2 messages เท่านั้น และต้องระบุชื่อ')",
+      "why_now": "ทำไมต้องทำตอนนี้ — อ้าง trend/event/competitor (เช่น 'Romand เพิ่งจัด pre-Live campaign สัปดาห์ที่แล้ว ต้องตามให้ทัน')",
       "from_segments": ["strategic_pro", "status_seeker"],
       "estimated_impact": "เพิ่ม conversion ~15% / ลด churn / สร้าง buzz บน TikTok"
     }
@@ -196,9 +223,12 @@ ${JSON.stringify(S.research_priors, null, 2)}
 - ถ้าคำถามเป็น "open_ended" ให้ใช้ themes แทน option labels ใน distribution
 - **ถ้าคำถามมีหลายมิติ** ให้ใส่ใน secondary_analyses (array). **ห้ามละเลย dimension ใดๆ ในคำถาม**
 - ถ้าคำถามเกี่ยวกับ basket / what to buy / จัด combo ใช้ product_catalog ใน brand_context จัด basket จริง พร้อมราคารวม
-- **persona_voices ต้องมี 6-10 คน** — เลือกจาก panel จริง (ใช้ persona_id จริง เช่น SP01, IE03, SS05, BL02) ครอบคลุมทุก segment และมีทั้ง positive/mixed/negative stance
-- persona voice ต้องเขียนในน้ำเสียงของคนนั้นจริงๆ (ใช้ "เรา/ฉัน/กู" ตามอายุ/ความเป็นกันเอง ของ persona)
-- **marketing_recommendations ต้องมี 4-7 ข้อ** — แต่ละข้อต้อง actionable + อ้าง persona/data ที่มาที่ไป + ระบุ priority
+- **persona_voices ต้องมี 6-10 คน** — เลือกจาก panel จริง (persona_id จริง เช่น SP01, IE03, SS05, BL02) ครอบคลุมทุก segment + มีทั้ง positive/mixed/negative stance
+- **opinion ของแต่ละ persona ต้อง 4-7 ประโยค** — เขียนเหมือน transcript interview จริง ห้าม < 3 ประโยค
+- ใช้ "เรา/ฉัน/กู/หนู/พี่" ให้เหมาะกับอายุ/ความเป็นกันเอง ของ persona; mix อังกฤษได้ตามวัย (Gen Z ใส่ "slay", "ขายของแม่")
+- ต้องอ้างอย่างน้อย 1 แบรนด์/สินค้าคู่แข่งเฉพาะใน opinion (Romand Glasting / 3CE Pot / Mistine / Cathy Doll / Peripera Sugar Tint / Essence ฯลฯ)
+- **marketing_recommendations ต้องมี 5-8 ข้อ** — แต่ละข้อต้องมี how_to_execute + trade_off + why_now ครบ ห้าม return null ถ้าคิดได้
+- recommendations แต่ละข้อต้องมี tactical detail จริง (specific tool / timing / message wording) ไม่ใช่แค่ strategic abstraction
 - ทุก response ต้อง valid JSON parsable — ไม่ใช้ comment, ไม่มี trailing comma, ไม่ใส่ markdown fence`;
   }
 
@@ -227,7 +257,7 @@ ${JSON.stringify(S.research_priors, null, 2)}
 
     const body = {
       model: opts.model || "claude-sonnet-4-6",
-      max_tokens: 12000,
+      max_tokens: 16000,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }]
     };

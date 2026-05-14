@@ -1917,31 +1917,67 @@
       const grid = document.createElement('div');
       grid.style.cssText = 'display:grid; gap:18px;';
       r.persona_voices.forEach(pv => {
-        // find full persona object to get portrait
         const persona = window.LA_GLACE_SURVEY.personas.find(p => p.id === pv.persona_id) || { id: pv.persona_id, name: pv.persona_name, segment_id: pv.segment };
         const seg = window.LA_GLACE_SURVEY.getSegment(persona.segment_id || pv.segment);
-        const portrait = window.PortraitGen ? PortraitGen.generate(persona, {size: 56}) : '';
+        const portrait = window.PortraitGen ? PortraitGen.generate(persona, {size: 64}) : '';
         const stanceColor = pv.stance === 'positive' ? 'var(--gold)' : pv.stance === 'negative' ? 'var(--red)' : 'var(--ink-soft)';
         const stanceLabel = pv.stance === 'positive' ? '✓ ชอบ' : pv.stance === 'negative' ? '✗ ไม่ชอบ' : '~ ก้ำกึ่ง';
+
+        // purchase_intent bar (0-10)
+        const intent = (typeof pv.purchase_intent === 'number') ? pv.purchase_intent : null;
+        const intentBar = intent != null ? `
+          <div style="display:flex; align-items:center; gap:8px; margin-top:6px; margin-bottom:8px;">
+            <span style="font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:0.15em; color:var(--ink-mute);">Buy Intent</span>
+            <div style="flex:1; height:6px; background:var(--paper-3); position:relative;">
+              <div style="width:${intent*10}%; height:100%; background:${stanceColor};"></div>
+            </div>
+            <span style="font-family:var(--serif); font-style:italic; font-weight:700; font-size:15px; color:${stanceColor};">${intent}/10</span>
+          </div>` : '';
+
+        // Suggestion object: {what, why, how} OR string fallback
+        let suggestionBlock = '';
+        if (pv.suggestion) {
+          if (typeof pv.suggestion === 'string') {
+            suggestionBlock = `
+              <div style="margin-top:10px; padding:10px 14px; background:var(--paper-2); border-left:3px solid var(--gold);">
+                <div style="font-family:var(--sans); font-size:9px; text-transform:uppercase; letter-spacing:0.2em; color:var(--gold); font-weight:700; margin-bottom:4px;">💡 ข้อเสนอ</div>
+                <div style="font-family:var(--sans); font-size:13px; color:var(--ink); line-height:1.5;">${escapeHtml(pv.suggestion)}</div>
+              </div>`;
+          } else {
+            suggestionBlock = `
+              <div style="margin-top:12px; padding:12px 14px; background:var(--paper-2); border-left:3px solid var(--gold);">
+                <div style="font-family:var(--sans); font-size:9px; text-transform:uppercase; letter-spacing:0.2em; color:var(--gold); font-weight:700; margin-bottom:6px;">💡 ข้อเสนอจาก ${escapeHtml(pv.persona_name || persona.name || '')}</div>
+                ${pv.suggestion.what ? `<div style="font-size:13px; color:var(--ink); line-height:1.5; margin-bottom:4px;"><strong style="font-family:var(--sans); font-size:9px; color:var(--gold); letter-spacing:0.15em; text-transform:uppercase;">What ▸</strong> ${escapeHtml(pv.suggestion.what)}</div>` : ''}
+                ${pv.suggestion.why ? `<div style="font-size:13px; color:var(--ink-soft); line-height:1.5; margin-bottom:4px; font-style:italic; font-family:var(--serif);"><strong style="font-family:var(--sans); font-size:9px; color:var(--gold); letter-spacing:0.15em; text-transform:uppercase; font-style:normal;">Why ▸</strong> ${escapeHtml(pv.suggestion.why)}</div>` : ''}
+                ${pv.suggestion.how ? `<div style="font-size:13px; color:var(--ink); line-height:1.5;"><strong style="font-family:var(--sans); font-size:9px; color:var(--gold); letter-spacing:0.15em; text-transform:uppercase;">How ▸</strong> ${escapeHtml(pv.suggestion.how)}</div>` : ''}
+              </div>`;
+          }
+        }
+
+        // chips: life context, comparison brand, key objection
+        const chips = [];
+        if (pv.life_context) chips.push(`<span style="display:inline-block; padding:3px 9px; background:var(--paper-2); border:1px solid var(--ink-faint); font-family:var(--mono); font-size:10px; color:var(--ink-soft); margin-right:6px; margin-bottom:4px;">📍 ${escapeHtml(pv.life_context)}</span>`);
+        if (pv.comparison_brand) chips.push(`<span style="display:inline-block; padding:3px 9px; background:var(--paper-2); border:1px solid var(--ink-faint); font-family:var(--mono); font-size:10px; color:var(--ink-soft); margin-right:6px; margin-bottom:4px;">⚖️ vs. ${escapeHtml(pv.comparison_brand)}</span>`);
+        if (pv.key_objection) chips.push(`<span style="display:inline-block; padding:3px 9px; background:#fef2f2; border:1px solid var(--red); color:var(--red-dark); font-family:var(--mono); font-size:10px; margin-right:6px; margin-bottom:4px;">⛔ ${escapeHtml(pv.key_objection)}</span>`);
+        const chipsHtml = chips.length ? `<div style="margin-top:10px;">${chips.join('')}</div>` : '';
+
         grid.innerHTML += `
-          <div style="display:grid; grid-template-columns:64px 1fr; gap:16px; padding-bottom:18px; border-bottom:1px solid var(--paper-3);">
+          <div style="display:grid; grid-template-columns:72px 1fr; gap:18px; padding-bottom:22px; border-bottom:1px solid var(--paper-3);">
             <div>
-              <div style="width:56px; height:56px; border:1px solid var(--ink); overflow:hidden;">${portrait}</div>
+              <div style="width:64px; height:64px; border:1px solid var(--ink); overflow:hidden;">${portrait}</div>
             </div>
             <div>
               <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:4px; flex-wrap:wrap;">
-                <span style="font-family:var(--serif); font-weight:700; font-size:18px;">${escapeHtml(pv.persona_name || persona.name || pv.persona_id)}</span>
+                <span style="font-family:var(--serif); font-weight:700; font-size:19px;">${escapeHtml(pv.persona_name || persona.name || pv.persona_id)}</span>
                 <span style="font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:0.15em; color:var(--ink-mute);">${persona.age || ''}${persona.age ? ' · ' : ''}${persona.role || (seg ? seg.name_th : '')}</span>
                 <span style="font-family:var(--sans); font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.15em; color:${stanceColor}; margin-left:auto;">${stanceLabel}</span>
               </div>
-              <div style="font-family:var(--serif); font-size:15px; line-height:1.55; color:var(--ink); border-left:2px solid var(--red); padding-left:12px; margin-top:6px;">
-                <span style="font-family:var(--serif); font-size:28px; color:var(--red); line-height:0; vertical-align:-10px; margin-right:2px;">"</span>${escapeHtml(pv.opinion || '')}<span style="font-family:var(--serif); font-size:28px; color:var(--red); line-height:0; vertical-align:-12px; margin-left:2px;">"</span>
+              ${intentBar}
+              <div style="font-family:var(--serif); font-size:15px; line-height:1.65; color:var(--ink); border-left:2px solid var(--red); padding-left:14px; margin-top:8px;">
+                <span style="font-family:var(--serif); font-size:32px; color:var(--red); line-height:0; vertical-align:-12px; margin-right:2px;">"</span>${escapeHtml(pv.opinion || '')}<span style="font-family:var(--serif); font-size:32px; color:var(--red); line-height:0; vertical-align:-14px; margin-left:2px;">"</span>
               </div>
-              ${pv.suggestion ? `
-                <div style="margin-top:10px; padding:8px 12px; background:var(--paper-2); border-left:3px solid var(--gold);">
-                  <div style="font-family:var(--sans); font-size:9px; text-transform:uppercase; letter-spacing:0.2em; color:var(--gold); font-weight:700; margin-bottom:3px;">💡 ข้อเสนอจาก ${escapeHtml(pv.persona_name || persona.name || '')}</div>
-                  <div style="font-family:var(--sans); font-size:13px; color:var(--ink);">${escapeHtml(pv.suggestion)}</div>
-                </div>` : ''}
+              ${chipsHtml}
+              ${suggestionBlock}
             </div>
           </div>
         `;
@@ -1991,16 +2027,42 @@
           const s = window.LA_GLACE_SURVEY.getSegment(sid);
           return s ? `${s.icon} ${s.name_th}` : sid;
         }).join(' · ');
+
+        // structured detail blocks
+        const detailBlocks = [];
+        if (rec.how_to_execute) {
+          detailBlocks.push(`
+            <div style="margin-top:10px; padding:10px 12px; background:var(--paper); border:1px dashed var(--ink-faint);">
+              <div style="font-family:var(--sans); font-size:9px; text-transform:uppercase; letter-spacing:0.18em; color:var(--ink); font-weight:700; margin-bottom:4px;">🛠 How to Execute</div>
+              <div style="font-family:var(--sans); font-size:13px; color:var(--ink); line-height:1.5;">${escapeHtml(rec.how_to_execute)}</div>
+            </div>`);
+        }
+        const sideBySide = [];
+        if (rec.trade_off) sideBySide.push(`
+          <div style="padding:10px 12px; background:#fef2f2; border-left:3px solid var(--red);">
+            <div style="font-family:var(--sans); font-size:9px; text-transform:uppercase; letter-spacing:0.18em; color:var(--red); font-weight:700; margin-bottom:4px;">⚠ Trade-off</div>
+            <div style="font-family:var(--sans); font-size:12px; color:var(--ink); line-height:1.5;">${escapeHtml(rec.trade_off)}</div>
+          </div>`);
+        if (rec.why_now) sideBySide.push(`
+          <div style="padding:10px 12px; background:#fefce8; border-left:3px solid var(--gold);">
+            <div style="font-family:var(--sans); font-size:9px; text-transform:uppercase; letter-spacing:0.18em; color:var(--gold); font-weight:700; margin-bottom:4px;">⏰ Why Now</div>
+            <div style="font-family:var(--sans); font-size:12px; color:var(--ink); line-height:1.5;">${escapeHtml(rec.why_now)}</div>
+          </div>`);
+        if (sideBySide.length) {
+          detailBlocks.push(`<div style="display:grid; grid-template-columns:${sideBySide.length === 2 ? '1fr 1fr' : '1fr'}; gap:10px; margin-top:10px;">${sideBySide.join('')}</div>`);
+        }
+
         recsList.innerHTML += `
-          <div style="display:grid; grid-template-columns:48px 1fr; gap:14px; padding:14px 16px; background:var(--paper-2); border-left:4px solid ${pColor};">
-            <div style="font-family:var(--serif); font-style:italic; font-size:36px; line-height:1; color:${pColor};">${num}</div>
+          <div style="display:grid; grid-template-columns:56px 1fr; gap:16px; padding:18px 20px; background:var(--paper-2); border-left:5px solid ${pColor};">
+            <div style="font-family:var(--serif); font-style:italic; font-size:42px; line-height:1; color:${pColor};">${num}</div>
             <div>
-              <div style="display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; margin-bottom:4px;">
-                <span style="font-family:var(--serif); font-weight:900; font-size:17px; line-height:1.2;">${escapeHtml(rec.title || '')}</span>
+              <div style="display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; margin-bottom:6px;">
+                <span style="font-family:var(--serif); font-weight:900; font-size:18px; line-height:1.25;">${escapeHtml(rec.title || '')}</span>
                 <span style="font-family:var(--sans); font-size:9px; text-transform:uppercase; letter-spacing:0.2em; color:${pColor}; font-weight:700;">${priorityIcon[rec.priority] || ''} ${rec.priority || ''} priority</span>
               </div>
-              ${rec.rationale ? `<div style="font-family:var(--sans); font-size:13px; line-height:1.5; color:var(--ink-soft); margin-bottom:6px;">${escapeHtml(rec.rationale)}</div>` : ''}
-              <div style="display:flex; gap:14px; flex-wrap:wrap; font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-mute); margin-top:6px;">
+              ${rec.rationale ? `<div style="font-family:var(--sans); font-size:13px; line-height:1.6; color:var(--ink); margin-bottom:6px;">${escapeHtml(rec.rationale)}</div>` : ''}
+              ${detailBlocks.join('')}
+              <div style="display:flex; gap:14px; flex-wrap:wrap; font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-mute); margin-top:10px; padding-top:8px; border-top:1px dotted var(--ink-faint);">
                 ${segNames ? `<span><strong>From:</strong> ${segNames}</span>` : ''}
                 ${rec.estimated_impact ? `<span><strong>Impact:</strong> ${escapeHtml(rec.estimated_impact)}</span>` : ''}
               </div>
