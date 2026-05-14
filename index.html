@@ -1180,11 +1180,16 @@
       </div>
 
       <div>
-        <h4>🔥 Current Beauty Trends</h4>
-        <div class="help">กรอกเทรนด์ปัจจุบัน — จะ inject เข้า persona context ทุกครั้ง</div>
-        <textarea id="cfg-trends" rows="10" placeholder="- เทรนด์ที่ 1..."></textarea>
-        <button class="run-btn" style="padding:6px 14px; font-size:12px; margin:0;" id="trends-save-btn">💾 Save</button>
-        <button class="run-btn" style="padding:6px 14px; font-size:12px; margin:0 0 0 4px; background:var(--surface-2); color:var(--text);" id="trends-reset-btn">↺ Reset</button>
+        <h4>🔥 Purchase-Decision Drivers</h4>
+        <div class="help">เทรนด์ที่ขับเคลื่อน/ขัดขวางการซื้อใน Thai beauty market — personas จะใช้ข้อมูลนี้เป็น <strong>ปัจจัยหลัก</strong>ในการตัดสินใจซื้อ</div>
+        <div id="trends-age-badge" style="font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-mute); margin-bottom:6px;"></div>
+        <textarea id="cfg-trends" rows="12" placeholder="- [PUSH] {factor}: explanation&#10;- [BLOCK] {factor}: explanation&#10;..."></textarea>
+        <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:4px;">
+          <button class="run-btn" style="padding:8px 14px; font-size:10px; margin:0;" id="trends-refresh-btn">🔄 Auto-fetch (Claude+Web)</button>
+          <button class="run-btn" style="padding:8px 14px; font-size:10px; margin:0; background:var(--paper); color:var(--ink);" id="trends-save-btn">💾 Save</button>
+          <button class="run-btn" style="padding:8px 14px; font-size:10px; margin:0; background:var(--paper); color:var(--ink);" id="trends-reset-btn">↺ Reset</button>
+        </div>
+        <div class="help" style="margin-top:6px;"><strong>Weekly tip:</strong> กดปุ่ม Auto-fetch ทุกวันจันทร์ → Claude จะค้น web หา purchase driver ปัจจุบัน แล้วเขียนทับให้</div>
       </div>
 
       <div>
@@ -1582,13 +1587,40 @@
     });
     document.getElementById('trends-save-btn').addEventListener('click', () => {
       SurveyEngine.setCurrentTrends(document.getElementById('cfg-trends').value);
+      updateTrendsAgeBadge();
       flashToast('💾 บันทึก trends แล้ว');
     });
     document.getElementById('trends-reset-btn').addEventListener('click', () => {
       if (!confirm('Reset trends เป็นค่าเริ่มต้น?')) return;
       document.getElementById('cfg-trends').value = SurveyEngine.DEFAULT_TRENDS;
       SurveyEngine.setCurrentTrends(SurveyEngine.DEFAULT_TRENDS);
+      updateTrendsAgeBadge();
     });
+
+    document.getElementById('trends-refresh-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('trends-refresh-btn');
+      if (!SurveyEngine.getApiKey()) {
+        alert('ต้องตั้งค่า Claude API Key ก่อน (Auto-fetch ใช้ web_search tool ของ Claude)');
+        return;
+      }
+      const oldText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> ค้นหา...';
+      try {
+        const model = document.getElementById('cfg-model').value;
+        const result = await SurveyEngine.refreshTrends({ model });
+        document.getElementById('cfg-trends').value = result.text;
+        updateTrendsAgeBadge();
+        flashToast('🔥 อัพเดท trends ล่าสุดแล้ว!');
+      } catch (err) {
+        alert('Auto-fetch ล้มเหลว: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldText;
+      }
+    });
+
+    updateTrendsAgeBadge();
 
     // Question type pills
     document.querySelectorAll('.qtype-pill').forEach(pill => {
@@ -1641,6 +1673,28 @@
       el.textContent = 'AI panel mode · Claude';
     } else {
       el.textContent = 'Offline · rule-based';
+    }
+  }
+
+  function updateTrendsAgeBadge() {
+    const el = document.getElementById('trends-age-badge');
+    if (!el || typeof SurveyEngine === 'undefined') return;
+    const age = SurveyEngine.getTrendsAgeDays();
+    if (age == null) {
+      el.innerHTML = '⚪ ยังไม่ได้อัพเดท · ใช้ default';
+      el.style.color = 'var(--ink-mute)';
+    } else if (age === 0) {
+      el.innerHTML = '🟢 อัพเดทวันนี้';
+      el.style.color = 'var(--gold)';
+    } else if (age < 7) {
+      el.innerHTML = `🟢 อัพเดทเมื่อ ${age} วันที่แล้ว`;
+      el.style.color = 'var(--gold)';
+    } else if (age < 14) {
+      el.innerHTML = `🟡 ${age} วันที่แล้ว · ควรอัพเดท`;
+      el.style.color = '#c89a1a';
+    } else {
+      el.innerHTML = `🔴 ${age} วันที่แล้ว · เก่าแล้ว!`;
+      el.style.color = 'var(--red)';
     }
   }
 

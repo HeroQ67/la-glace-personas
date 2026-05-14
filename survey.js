@@ -11,6 +11,7 @@ window.SurveyEngine = (function() {
   const STORAGE = {
     apiKey: "la_glace_api_key",
     trends: "la_glace_current_trends",
+    trendsUpdatedAt: "la_glace_trends_updated_at",
     history: "la_glace_survey_history"
   };
 
@@ -42,6 +43,18 @@ window.SurveyEngine = (function() {
 
   function setCurrentTrends(text) {
     localStorage.setItem(STORAGE.trends, text);
+    localStorage.setItem(STORAGE.trendsUpdatedAt, String(Date.now()));
+  }
+
+  function getTrendsUpdatedAt() {
+    const ts = parseInt(localStorage.getItem(STORAGE.trendsUpdatedAt) || "0", 10);
+    return ts || null;
+  }
+
+  function getTrendsAgeDays() {
+    const ts = getTrendsUpdatedAt();
+    if (!ts) return null;
+    return Math.floor((Date.now() - ts) / (1000 * 60 * 60 * 24));
   }
 
   function getHistory() {
@@ -60,6 +73,11 @@ window.SurveyEngine = (function() {
     const S = window.LA_GLACE_SURVEY;
     const trends = opts.currentTrends || getCurrentTrends();
 
+    const trendsAge = getTrendsAgeDays();
+    const trendsAgeNote = trendsAge != null
+      ? `(อัพเดทล่าสุด ${trendsAge} วันที่แล้ว)`
+      : "(ยังไม่มีการอัพเดท — ใช้ default)";
+
     return `คุณคือ AI ที่ทำหน้าที่จำลอง "Market Research Panel" สำหรับแบรนด์ LA GLACE (เครื่องสำอางไทย Underground Beauty)
 
 # บทบาทของคุณ
@@ -69,8 +87,18 @@ window.SurveyEngine = (function() {
 # Brand Context
 ${JSON.stringify(S.brand_context, null, 2)}
 
-# Beauty Industry Trends ปัจจุบัน (ใช้ context นี้ในการ reasoning)
+# 🔥 CURRENT PURCHASE-DECISION DRIVERS ${trendsAgeNote}
+ข้อมูลด้านล่างคือเทรนด์/ปัจจัยที่กำลังขับเคลื่อน/ขัดขวางการซื้อในตลาดเครื่องสำอางไทย ณ สัปดาห์นี้:
+
 ${trends}
+
+## วิธีใช้ trends กับการคาดการณ์ (สำคัญมาก)
+แต่ละ persona ต้อง weight ข้อมูล trend ด้านบนเป็น **ปัจจัยหลัก** ในการตัดสินใจซื้อ:
+- ปัจจัย [PUSH] → เพิ่มแนวโน้มซื้อ (โดยเฉพาะใน segment ที่ตรงกับ trigger)
+- ปัจจัย [BLOCK] → ลดแนวโน้มซื้อ / เลื่อน / เปลี่ยนแบรนด์
+- ปัจจัย [VIRAL] → เพิ่ม FOMO ในกลุ่ม Status Seeker + Influencer; กลุ่ม Strategic Pro อาจสงสัย
+- ปัจจัย [SEASONAL] → เลือก SKU ที่ตรงสภาพอากาศ/เทศกาล
+แต่ละ persona ตอบจาก lens ของ "ฉันเป็นใคร × trend นี้กระทบฉันยังไง × ตอนนี้ฉันมีงบ/อารมณ์แบบไหน"
 
 # Panel Segments (4 กลุ่ม)
 ${S.buildSegmentSummary()}
@@ -335,11 +363,86 @@ ${JSON.stringify(S.research_priors, null, 2)}
     return null;
   }
 
+  // ==============================================================
+  // REFRESH TRENDS — auto-fetch current purchase-decision drivers
+  // via Claude API + WebSearch tool
+  // ==============================================================
+  async function refreshTrends({ model = "claude-sonnet-4-6" } = {}) {
+    const apiKey = getApiKey();
+    if (!apiKey) throw new Error("กรุณาตั้งค่า Claude API Key ก่อน");
+
+    const today = new Date().toLocaleDateString("en-US", {
+      year: "numeric", month: "long", day: "numeric"
+    });
+
+    const systemPrompt = `You are a Thai beauty market research analyst. Your job: extract CURRENT purchase-decision drivers for young Thai women (Gen Z + Millennials) buying cosmetics/makeup, focused on the LA GLACE customer segment (underground/masstige Thai brands, K-beauty competitors, TikTok-driven).
+
+Output STRICTLY as a Thai-language bulleted list (10-16 bullets) — each bullet is one driver. Format:
+
+- [PUSH] / [BLOCK] / [VIRAL] / [SEASONAL] {factor}: short explanation of how it affects buy decisions
+
+Cover these categories:
+1. Viral products/ingredients on TikTok Thailand right now
+2. K-beauty / J-beauty / C-beauty crossover trends
+3. Economic factors affecting buying (รายได้, ค่าครองชีพ, ปรับขึ้น VAT, etc.)
+4. Seasonal/weather factors (PM2.5, heat, rainy season → product needs)
+5. Competitor activity (Romand new launches, Cathy Doll campaigns, 3CE, Mistine, etc.)
+6. Promo cycle drivers (11.11, 12.12, Double Day, Mid-year sales, festival sales)
+7. Cultural moments (concert tour, drama release, festival → makeup demand spike)
+8. Sustainability / wellness signals affecting purchases
+9. Pricing psychology / Masstige positioning shifts
+10. Channel/platform shifts (TikTok Shop policy, live commerce, marketplace)
+
+Be SPECIFIC: name actual brands, product lines, events, viral hashtags, prices.
+No preamble, no conclusion — ONLY the bullets.`;
+
+    const userPrompt = `Today is ${today}. Research and output the current week's purchase-decision drivers for Thai Gen Z + Millennial beauty consumers (LA GLACE target segment).
+
+Use web_search for: "TikTok beauty Thailand viral [current month/year]", "เครื่องสำอางขายดี TikTok [year]", "Thai beauty trends [current month]", "Korean beauty Thailand 2026", "Romand Thailand new launch", "LA GLACE viral".
+
+Output the bulleted list only.`;
+
+    const body = {
+      model,
+      max_tokens: 2500,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 }]
+    };
+
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!resp.ok) {
+      throw new Error(`API ${resp.status}: ${await resp.text()}`);
+    }
+
+    const data = await resp.json();
+    const text = (data.content || [])
+      .filter(b => b.type === "text")
+      .map(b => b.text)
+      .join("\n")
+      .trim();
+
+    if (!text) throw new Error("API returned empty trends");
+
+    setCurrentTrends(text);
+    return { text, updatedAt: getTrendsUpdatedAt(), usage: data.usage };
+  }
+
   return {
     getApiKey, setApiKey,
-    getCurrentTrends, setCurrentTrends,
+    getCurrentTrends, setCurrentTrends, getTrendsUpdatedAt, getTrendsAgeDays,
     getHistory, saveHistory,
-    runSurvey, runSurveyFallback,
+    runSurvey, runSurveyFallback, refreshTrends,
     DEFAULT_TRENDS
   };
 })();
