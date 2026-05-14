@@ -3,30 +3,127 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LA GLACE — Persona Chat</title>
+<title>LA GLACE — Issue 01 · Editorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Serif+Thai:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #faf7f5;
-    --surface: #ffffff;
-    --surface-2: #f3eeea;
-    --border: #e6ddd6;
-    --text: #1a1a1a;
-    --text-muted: #6b6258;
-    --accent: #1a1a1a;
-    --me-bubble: #1a1a1a;
-    --me-text: #ffffff;
-    --them-bubble: #f3eeea;
-    --them-text: #1a1a1a;
-    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    --paper:        #faf7f1;
+    --paper-2:      #f3ede0;
+    --paper-3:      #e8e0cf;
+    --ink:          #1a1718;
+    --ink-soft:     #4a4540;
+    --ink-mute:     #8a8175;
+    --ink-faint:    #b8b1a3;
+    --rule:         #1a1718;
+    --hair:         #d4cbb5;
+    --red:          #c8341a;
+    --red-dark:     #8b1f10;
+    --gold:         #b08d57;
+    --blush:        #f5d0d5;
+    --pop:          #ff5e8e;
+
+    /* legacy aliases — kept for components that referenced these */
+    --bg:           var(--paper);
+    --surface:      #ffffff;
+    --surface-2:    var(--paper-2);
+    --border:       var(--paper-3);
+    --text:         var(--ink);
+    --text-muted:   var(--ink-mute);
+    --accent:       var(--ink);
+    --me-bubble:    var(--ink);
+    --me-text:      var(--paper);
+    --them-bubble:  var(--paper-2);
+    --them-text:    var(--ink);
+    --shadow:       0 1px 3px rgba(26,23,24,0.05);
+
+    --serif: "Playfair Display", "Noto Serif Thai", Georgia, serif;
+    --sans:  "Inter", -apple-system, BlinkMacSystemFont, "Sukhumvit Set", "IBM Plex Sans Thai", sans-serif;
+    --mono:  "DM Mono", "JetBrains Mono", "SF Mono", Consolas, monospace;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sukhumvit Set", "IBM Plex Sans Thai", sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    font-family: var(--sans);
+    background:
+      radial-gradient(ellipse 1200px 600px at 50% -10%, var(--paper-2), transparent 70%),
+      var(--paper);
+    color: var(--ink);
     overflow: hidden;
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    /* subtle film-grain / paper texture using CSS */
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 1000;
+    opacity: 0.035;
+    background-image:
+      radial-gradient(circle at 25% 30%, var(--ink) 0.6px, transparent 0.8px),
+      radial-gradient(circle at 75% 70%, var(--ink) 0.5px, transparent 0.7px);
+    background-size: 4px 4px, 6px 6px;
+  }
+
+  /* ========== EDITORIAL TYPOGRAPHY ========== */
+  .display, .headline, .editorial-h {
+    font-family: var(--serif);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+  .kicker, .label-cap {
+    font-family: var(--sans);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .byline {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .pull-quote {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.35;
+    color: var(--ink);
+    border-left: 3px solid var(--red);
+    padding: 4px 0 4px 14px;
+    margin: 8px 0;
+  }
+  .hr-fancy {
+    border: 0;
+    border-top: 1px solid var(--ink);
+    margin: 14px 0;
+    position: relative;
+  }
+  .hr-fancy::after {
+    content: "✦";
+    position: absolute;
+    top: -10px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--paper);
+    padding: 0 8px;
+    color: var(--red);
+    font-size: 12px;
+  }
+  .rule-line {
+    height: 1px;
+    background: var(--ink);
+    width: 100%;
+  }
+  .rule-double {
+    border-top: 3px double var(--ink);
+    height: 0;
+    width: 100%;
   }
 
   .app {
@@ -37,27 +134,40 @@
     overflow: hidden;
   }
 
-  /* SIDEBAR */
+  /* SIDEBAR — editorial table of contents */
   .sidebar {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
+    background: var(--paper);
+    border-right: 1px solid var(--ink);
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
   .sidebar-header {
-    padding: 20px 20px 16px;
-    border-bottom: 1px solid var(--border);
+    padding: 22px 20px 16px;
+    border-bottom: 1px solid var(--ink);
   }
   .brand {
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+  }
+  .brand::after {
+    content: "";
+    display: block;
+    width: 36px; height: 2px;
+    background: var(--red);
+    margin: 6px 0 4px;
   }
   .brand-sub {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 2px;
+    font-family: var(--sans);
+    font-size: 9px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-weight: 600;
   }
   .persona-list {
     flex: 1;
@@ -65,52 +175,70 @@
     padding: 8px;
   }
   .persona-card {
-    padding: 14px;
-    border-radius: 12px;
+    padding: 14px 8px;
+    border-bottom: 1px solid var(--paper-3);
     cursor: pointer;
-    margin-bottom: 6px;
     transition: background 0.15s;
     display: flex;
     gap: 12px;
-    align-items: flex-start;
+    align-items: center;
+    position: relative;
   }
-  .persona-card:hover { background: var(--surface-2); }
+  .persona-card:hover { background: var(--paper-2); }
   .persona-card.active {
-    background: var(--accent);
-    color: white;
+    background: var(--ink);
+    color: var(--paper);
   }
-  .persona-card.active .persona-tagline { color: rgba(255,255,255,0.7); }
+  .persona-card.active .persona-name,
+  .persona-card.active .persona-segment,
+  .persona-card.active .persona-tagline { color: var(--paper); }
+  .persona-card.active::before {
+    content: "▶";
+    position: absolute;
+    left: -2px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--red);
+    font-size: 9px;
+  }
   .avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 22px;
     flex-shrink: 0;
+    overflow: hidden;
+    background: var(--paper-2);
+    border: 1px solid var(--ink);
   }
+  .avatar svg { width: 100%; height: 100%; }
   .persona-info { flex: 1; min-width: 0; }
   .persona-name {
-    font-weight: 600;
-    font-size: 15px;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 17px;
+    line-height: 1.1;
     display: flex;
     align-items: center;
     gap: 6px;
   }
   .persona-segment {
-    font-size: 11px;
+    font-family: var(--sans);
+    font-size: 9px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
-  .persona-card.active .persona-segment { color: rgba(255,255,255,0.6); }
-  .persona-tagline {
-    font-size: 12px;
-    color: var(--text-muted);
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
     margin-top: 4px;
-    line-height: 1.4;
+    font-weight: 600;
+  }
+  .persona-tagline {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    line-height: 1.35;
+    font-style: italic;
   }
 
   .sidebar-footer {
@@ -134,30 +262,42 @@
   .dot.ok { background: #22c55e; }
   .dot.warn { background: #ef4444; }
 
-  /* CHAT */
+  /* CHAT — editorial Q&A column layout */
   .chat {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: var(--paper);
+    position: relative;
   }
   .chat-header {
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
+    padding: 18px 32px 14px;
+    border-bottom: 3px double var(--ink);
+    background: var(--paper);
     display: flex;
-    align-items: center;
-    gap: 14px;
+    align-items: flex-end;
+    gap: 18px;
   }
-  .chat-header .avatar { width: 40px; height: 40px; font-size: 20px; }
+  .chat-header .avatar { width: 64px; height: 64px; font-size: 28px; border-radius: 2px; }
   .chat-header-info { flex: 1; }
-  .chat-header-name { font-weight: 600; font-size: 16px; }
+  .chat-header-name {
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 32px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
   .chat-header-status {
-    font-size: 12px;
-    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 10px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-top: 8px;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 2px;
+    gap: 8px;
   }
   .online-dot {
     width: 8px;
@@ -180,10 +320,13 @@
   .messages {
     flex: 1;
     overflow-y: auto;
-    padding: 24px;
+    padding: 32px 64px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 28px;
+    max-width: 760px;
+    margin: 0 auto;
+    width: 100%;
   }
   .empty-state {
     margin: auto;
@@ -215,50 +358,104 @@
   }
   .suggestion:hover { background: var(--surface-2); }
 
+  /* MAGAZINE COLUMN STYLE MESSAGES */
   .msg {
-    display: flex;
-    gap: 10px;
-    max-width: 80%;
-    animation: slideIn 0.2s ease-out;
+    display: block;
+    width: 100%;
+    animation: fadeIn 0.25s ease-out;
   }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(4px); }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  .msg.them { align-self: flex-start; }
-  .msg.me { align-self: flex-end; flex-direction: row-reverse; }
+  .msg.me .msg-head, .msg.them .msg-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .msg-head .qa-label {
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 26px;
+    line-height: 1;
+    color: var(--red);
+    width: 26px;
+    flex-shrink: 0;
+  }
+  .msg.me .msg-head .qa-label { color: var(--ink); }
+  .msg-head .avatar { width: 32px; height: 32px; }
+  .msg-head .who {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+  }
+  .msg-head .who-sub {
+    font-family: var(--sans);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+    margin-left: 8px;
+    font-weight: 600;
+  }
   .bubble {
-    padding: 10px 14px;
-    border-radius: 18px;
-    font-size: 14px;
-    line-height: 1.6;
+    padding: 4px 0 8px 36px;
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
     white-space: pre-wrap;
     word-wrap: break-word;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sukhumvit Set", "IBM Plex Sans Thai", "Consolas", monospace;
+    color: var(--ink);
   }
   .bubble strong { font-weight: 700; }
   .bubble code, .bubble .bar {
-    font-family: "SF Mono", Consolas, "Courier New", monospace;
+    font-family: var(--mono);
     font-size: 12px;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.3px;
+    background: var(--paper-2);
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+  /* user question */
+  .msg.me .bubble {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 17px;
+    color: var(--ink);
+    padding-left: 36px;
+  }
+  .msg.me .bubble::before {
+    content: "";
+    display: block;
+    width: 20px; height: 2px;
+    background: var(--ink);
+    margin: 0 0 6px -28px;
+  }
+  /* persona answer — drop cap on first letter */
+  .msg.them .bubble::first-letter {
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 44px;
+    line-height: 0.85;
+    float: left;
+    padding: 4px 8px 0 0;
+    color: var(--red);
   }
   .msg.them .bubble {
-    background: var(--them-bubble);
-    color: var(--them-text);
-    border-bottom-left-radius: 4px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--paper-3);
   }
-  .msg.me .bubble {
-    background: var(--me-bubble);
-    color: var(--me-text);
-    border-bottom-right-radius: 4px;
-  }
-  .msg .avatar { width: 32px; height: 32px; font-size: 16px; flex-shrink: 0; }
-  .msg.me .avatar { background: var(--accent); color: white; font-size: 12px; font-weight: 600; }
   .msg-time {
-    font-size: 10px;
-    color: var(--text-muted);
-    margin-top: 2px;
-    padding: 0 4px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-mute);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
   }
   .typing {
     display: flex;
@@ -281,17 +478,32 @@
 
   /* COMPOSER */
   .composer {
-    padding: 16px 24px;
-    border-top: 1px solid var(--border);
-    background: var(--surface);
+    padding: 18px 64px 24px;
+    border-top: 1px solid var(--ink);
+    background: var(--paper);
+    max-width: 760px;
+    margin: 0 auto;
+    width: 100%;
   }
   .composer-inner {
     display: flex;
     gap: 10px;
     align-items: flex-end;
-    background: var(--surface-2);
-    border-radius: 24px;
-    padding: 8px 8px 8px 16px;
+    background: var(--paper-2);
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    padding: 10px 10px 10px 16px;
+  }
+  .composer::before {
+    content: "WRITE A LETTER TO THE EDITOR";
+    display: block;
+    font-family: var(--sans);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--ink-mute);
+    font-weight: 600;
+    margin-bottom: 8px;
   }
   textarea {
     flex: 1;
@@ -307,11 +519,11 @@
     color: var(--text);
   }
   .send-btn {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    background: var(--accent);
-    color: white;
+    background: var(--red);
+    color: var(--paper);
     border: none;
     cursor: pointer;
     display: flex;
@@ -320,6 +532,7 @@
     flex-shrink: 0;
     transition: opacity 0.15s;
   }
+  .send-btn:hover { background: var(--red-dark); }
   .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .send-btn svg { width: 18px; height: 18px; }
 
@@ -383,64 +596,134 @@
   }
 
   /* =========================================================
-     MODE SWITCHER + SURVEY UI
+     MASTHEAD — magazine-style top navigation
      ========================================================= */
+  .masthead {
+    background: var(--paper);
+    border-bottom: 3px double var(--ink);
+    padding: 12px 28px 8px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 24px;
+  }
+  .masthead-left, .masthead-right {
+    font-family: var(--sans);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .masthead-right { text-align: right; }
+  .masthead-title {
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    text-align: center;
+    position: relative;
+  }
+  .masthead-title span {
+    color: var(--red);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .masthead-sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 2px;
+  }
   .mode-tabs {
     display: flex;
-    gap: 4px;
-    padding: 8px 16px 0;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
+    gap: 0;
+    padding: 0 28px;
+    border-bottom: 1px solid var(--ink);
+    background: var(--paper);
+    align-items: stretch;
   }
   .mode-tab {
-    padding: 10px 18px;
+    padding: 14px 22px 12px;
     background: transparent;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-bottom: 3px solid transparent;
     cursor: pointer;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
     transition: all 0.15s;
+    margin-right: 4px;
   }
-  .mode-tab:hover { color: var(--text); }
+  .mode-tab:hover { color: var(--ink); }
   .mode-tab.active {
-    color: var(--text);
-    border-bottom-color: var(--accent);
+    color: var(--ink);
+    border-bottom-color: var(--red);
+  }
+  .mode-tab .num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--red);
+    margin-right: 4px;
+    font-size: 13px;
+    text-transform: none;
+    letter-spacing: 0;
   }
 
   .survey-view { display: none; flex: 1; overflow: hidden; min-height: 0; }
   .survey-view.active { display: grid; grid-template-columns: 360px 1fr; }
 
   .survey-side {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
+    background: var(--paper);
+    border-right: 1px solid var(--ink);
     overflow-y: auto;
-    padding: 20px;
+    padding: 24px 22px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 22px;
   }
   .survey-side h4 {
-    font-size: 12px;
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 10px;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 6px;
+  }
+  .survey-side label {
+    font-family: var(--sans);
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    display: block;
+    margin-bottom: 6px;
     font-weight: 600;
   }
-  .survey-side label { font-size: 13px; color: var(--text); display: block; margin-bottom: 6px; }
   .survey-side input, .survey-side textarea, .survey-side select {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    border: 1px solid var(--ink);
+    border-radius: 0;
     font-size: 13px;
-    font-family: inherit;
-    background: var(--bg);
-    color: var(--text);
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
     margin-bottom: 6px;
+  }
+  .survey-side input:focus, .survey-side textarea:focus, .survey-side select:focus {
+    outline: none;
+    border-color: var(--red);
+    box-shadow: -3px 3px 0 var(--red);
   }
   .survey-side textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   .survey-side .help {
@@ -467,20 +750,33 @@
 
   .survey-main {
     overflow-y: auto;
-    padding: 24px 32px;
-    background: var(--bg);
+    padding: 28px 40px 60px;
+    background: var(--paper);
+    max-width: 980px;
+    margin: 0 auto;
+    width: 100%;
   }
   .survey-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
-    margin-bottom: 16px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    padding: 24px 28px;
+    margin-bottom: 18px;
+    box-shadow: -4px 4px 0 var(--ink);
   }
   .survey-card h3 {
-    font-size: 14px;
+    font-family: var(--serif);
+    font-size: 24px;
     margin-bottom: 12px;
-    font-weight: 600;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+  .survey-card h3::before {
+    content: "§ ";
+    color: var(--red);
+    font-weight: 400;
+    font-style: italic;
   }
   .survey-card .meta {
     font-size: 11px;
@@ -489,29 +785,42 @@
   }
   .survey-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .qtype-pill {
-    padding: 6px 12px;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    background: var(--surface);
+    padding: 6px 14px;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    background: var(--paper);
     cursor: pointer;
-    font-size: 12px;
-    color: var(--text-muted);
-    font-family: inherit;
+    font-size: 10px;
+    color: var(--ink);
+    font-family: var(--sans);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 600;
   }
-  .qtype-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .qtype-pill.active {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
 
   .run-btn {
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 12px 22px;
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 600;
+    background: var(--red);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 14px 28px;
+    border-radius: 0;
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
     cursor: pointer;
     margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    box-shadow: -3px 3px 0 var(--ink);
+    transition: transform 0.1s;
   }
+  .run-btn:hover { transform: translate(-1px, 1px); box-shadow: -2px 2px 0 var(--ink); }
+  .run-btn:active { transform: translate(0, 0); box-shadow: 0 0 0 var(--ink); }
   .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .run-btn .spinner {
     display: inline-block;
@@ -525,38 +834,45 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Distribution chart — text-bar style */
+  /* Distribution chart — editorial infographic style */
   .dist-row {
     display: grid;
-    grid-template-columns: 220px 1fr 50px;
-    gap: 10px;
+    grid-template-columns: 240px 1fr 60px;
+    gap: 14px;
     align-items: center;
-    padding: 4px 0;
-    font-size: 12px;
+    padding: 8px 0;
+    font-size: 13px;
+    border-bottom: 1px dotted var(--ink-faint);
   }
   .dist-row .label {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: var(--text);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 500;
   }
   .dist-row .bar {
-    height: 18px;
-    background: var(--surface-2);
-    border-radius: 4px;
+    height: 14px;
+    background: transparent;
+    border-radius: 0;
     overflow: hidden;
     position: relative;
+    border-bottom: 1px solid var(--ink);
   }
   .dist-row .bar-fill {
     height: 100%;
-    border-radius: 4px;
-    transition: width 0.4s ease-out;
+    border-radius: 0;
+    transition: width 0.5s cubic-bezier(.2,.7,.2,1);
   }
   .dist-row .pct {
     text-align: right;
+    font-family: var(--serif);
+    font-style: italic;
     font-variant-numeric: tabular-nums;
-    color: var(--text-muted);
-    font-size: 12px;
+    color: var(--ink);
+    font-size: 18px;
+    font-weight: 700;
   }
 
   .segment-tabs {
@@ -566,102 +882,158 @@
     flex-wrap: wrap;
   }
   .segment-tab {
-    padding: 6px 12px;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    background: var(--surface);
+    padding: 7px 14px;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    background: var(--paper);
     cursor: pointer;
-    font-size: 11px;
-    color: var(--text-muted);
-    font-family: inherit;
+    font-size: 10px;
+    color: var(--ink);
+    font-family: var(--sans);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 6px;
   }
   .segment-tab.active {
-    background: var(--text);
-    color: white;
-    border-color: var(--text);
+    background: var(--ink);
+    color: var(--paper);
   }
-  .segment-tab .sw { width: 8px; height: 8px; border-radius: 50%; }
+  .segment-tab .sw { width: 10px; height: 10px; border-radius: 0; }
 
   .theme-card {
-    background: var(--surface-2);
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 8px;
+    background: var(--paper-2);
+    border-left: 3px solid var(--red);
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    border-radius: 0;
   }
   .theme-card .head {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
     margin-bottom: 6px;
   }
-  .theme-card .name { font-weight: 600; font-size: 13px; }
-  .theme-card .weight { font-size: 11px; color: var(--text-muted); }
-  .theme-card .quote {
-    font-style: italic;
-    font-size: 12px;
-    color: var(--text-muted);
-    border-left: 2px solid var(--border);
-    padding-left: 8px;
-    margin-top: 4px;
-  }
-  .theme-card .segs { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
-
-  .insight-box {
-    background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
-    border: 1px solid #fbbf24;
-    border-radius: 12px;
-    padding: 14px;
-    margin-top: 12px;
-  }
-  .insight-box .label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #92400e;
+  .theme-card .name {
+    font-family: var(--serif);
     font-weight: 700;
-    margin-bottom: 4px;
+    font-size: 17px;
+    line-height: 1.2;
   }
-  .insight-box .text { font-size: 13px; line-height: 1.5; color: #1a1a1a; }
-
-  .ro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-  .ro-card {
-    border-radius: 10px;
-    padding: 12px;
-    font-size: 12px;
+  .theme-card .weight {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--red);
+    font-weight: 900;
+  }
+  .theme-card .quote {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink);
+    border-left: 0;
+    padding-left: 0;
+    margin-top: 8px;
     line-height: 1.5;
   }
-  .ro-card.risks { background: #fef2f2; border: 1px solid #fecaca; }
-  .ro-card.opps { background: #f0fdf4; border: 1px solid #bbf7d0; }
-  .ro-card h5 {
-    font-size: 10px;
+  .theme-card .quote::before { content: "\"" attr(data-q); font-size: 28px; line-height: 0; color: var(--red); vertical-align: -10px; margin-right: 4px; }
+  .theme-card .segs {
+    font-family: var(--sans);
+    font-size: 9px;
+    color: var(--ink-mute);
+    margin-top: 8px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-    font-weight: 700;
+    letter-spacing: 0.18em;
+    font-weight: 600;
   }
-  .ro-card.risks h5 { color: #991b1b; }
-  .ro-card.opps h5 { color: #166534; }
-  .ro-card ul { margin: 0; padding-left: 16px; }
-  .ro-card li { margin-bottom: 4px; }
+
+  .insight-box {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 0;
+    padding: 20px 22px;
+    margin-top: 14px;
+    position: relative;
+  }
+  .insight-box::before {
+    content: "EDITOR'S NOTE";
+    position: absolute;
+    top: -10px; left: 16px;
+    background: var(--red);
+    color: var(--paper);
+    font-family: var(--sans);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    padding: 4px 10px;
+  }
+  .insight-box .label {
+    font-family: var(--sans);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--hair);
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: none; /* replaced by ::before */
+  }
+  .insight-box .text {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--paper);
+    font-style: italic;
+  }
+
+  .ro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+  .ro-card {
+    border-radius: 0;
+    padding: 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    background: var(--paper-2);
+    border: 1px solid var(--ink);
+  }
+  .ro-card.risks { border-top: 4px solid var(--red); }
+  .ro-card.opps { border-top: 4px solid var(--gold); }
+  .ro-card h5 {
+    font-family: var(--serif);
+    font-size: 18px;
+    margin-bottom: 8px;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+  }
+  .ro-card.risks h5 { color: var(--red); }
+  .ro-card.opps h5 { color: var(--gold); }
+  .ro-card ul { margin: 0; padding-left: 18px; }
+  .ro-card li { margin-bottom: 6px; font-family: var(--sans); }
 
   .satisfaction-pill {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 12px;
-    background: var(--surface-2);
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
+    padding: 4px 12px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    font-family: var(--sans);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-weight: 700;
     margin-left: 8px;
   }
   .satisfaction-pill .score {
-    font-size: 16px;
-    color: var(--accent);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--red);
     font-variant-numeric: tabular-nums;
+    font-weight: 900;
   }
 
   .empty-survey {
@@ -685,49 +1057,100 @@
   .history-item .ts { color: var(--text-muted); font-size: 10px; }
 
   .preset-chip {
-    padding: 6px 10px;
-    background: var(--surface-2);
-    border-radius: 14px;
-    font-size: 11px;
+    padding: 6px 12px;
+    background: var(--paper);
+    border-radius: 0;
+    font-family: var(--sans);
+    font-size: 10px;
     cursor: pointer;
-    color: var(--text);
-    border: 1px solid transparent;
+    color: var(--ink);
+    border: 1px solid var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
   }
-  .preset-chip:hover { border-color: var(--accent); }
+  .preset-chip:hover { border-color: var(--red); color: var(--red); }
+
+  /* SUGGESTIONS in chat empty state */
+  .suggestion {
+    font-family: var(--sans) !important;
+    background: var(--paper) !important;
+    border: 1px solid var(--ink) !important;
+    border-radius: 0 !important;
+    padding: 12px 14px !important;
+    font-size: 12px !important;
+  }
+  .suggestion:hover { background: var(--paper-2) !important; box-shadow: -3px 3px 0 var(--ink); }
+
+  .empty-state h2 {
+    font-family: var(--serif) !important;
+    font-weight: 900 !important;
+    font-size: 28px !important;
+    letter-spacing: -0.02em;
+  }
+
+  /* HISTORY items */
+  .history-item {
+    border: 1px solid var(--ink-faint);
+    border-radius: 0 !important;
+    background: var(--paper) !important;
+  }
+  .history-item:hover { background: var(--paper-2) !important; border-color: var(--ink); }
+  .history-item .q { font-family: var(--serif); font-weight: 700; font-size: 12px; }
+  .history-item .ts { font-family: var(--mono); }
+
+  /* SEG ROW in survey side */
+  .seg-row {
+    background: var(--paper) !important;
+    border: 1px solid var(--ink-faint);
+    border-radius: 0 !important;
+    font-family: var(--sans);
+    font-size: 11px;
+    transition: border-color 0.1s;
+  }
+  .seg-row:hover { border-color: var(--ink); }
+  .seg-swatch { border-radius: 0 !important; }
+
+  .seg-meta { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; }
 </style>
 </head>
 <body>
 
 <div style="display:flex; flex-direction:column; height:100vh;">
 
+  <header class="masthead">
+    <div class="masthead-left" id="masthead-date">Issue 01 · <span id="issue-date"></span></div>
+    <div>
+      <div class="masthead-title">LA <span>GLACE</span> EDITORIAL</div>
+      <div class="masthead-sub">— A magazine of customer voices —</div>
+    </div>
+    <div class="masthead-right" id="mode-status">Offline · rule-based</div>
+  </header>
+
   <div class="mode-tabs">
-    <button class="mode-tab active" data-mode="chat">💬 Persona Chat</button>
-    <button class="mode-tab" data-mode="survey">📊 Survey & Predict</button>
-    <div style="flex:1"></div>
-    <span style="font-size:11px; color:var(--text-muted); align-self:center; padding-right:8px;" id="mode-status">Offline · rule-based</span>
+    <button class="mode-tab active" data-mode="chat"><span class="num">01</span>Interviews</button>
+    <button class="mode-tab" data-mode="survey"><span class="num">02</span>Research Report</button>
   </div>
 
-  <!-- ============== CHAT MODE ============== -->
+  <!-- ============== INTERVIEWS (CHAT MODE) ============== -->
   <div class="app" id="mode-chat-view">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="brand">LA GLACE</div>
-        <div class="brand-sub">Persona Chat · ลูกค้าเสมือนจริง</div>
+        <div class="brand">FEATURED<br>VOICES</div>
+        <div class="brand-sub">Section 01 · Interviews</div>
       </div>
       <div class="persona-list" id="persona-list"></div>
-      <div class="sidebar-footer">
-        <span class="api-key-status">
-          <span class="dot ok"></span> Offline mode · rule-based analyzer
-        </span>
+      <div class="sidebar-footer" style="font-family:var(--serif); font-style:italic; font-size:12px; color:var(--ink-soft); padding:14px 20px; border-top:1px solid var(--ink);">
+        <em>"Edited transcripts of conversations with our most engaged readers."</em>
       </div>
     </aside>
 
     <main class="chat" id="chat-area">
       <div class="empty-state" id="empty-main" style="margin: auto; text-align: center;">
-        <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
-        <h2>เลือก persona ที่ต้องการคุย</h2>
-        <p style="color: var(--text-muted); font-size: 14px; max-width: 360px; margin: 8px auto;">
-          คุยกับลูกค้าเสมือนจริงของ LA GLACE — แต่ละคนมีตัวตน วิธีพูด และพฤติกรรมการซื้อต่างกัน
+        <div style="font-family:var(--sans); font-size:10px; text-transform:uppercase; letter-spacing:0.3em; color:var(--red); margin-bottom:14px;">— Begin —</div>
+        <h2>เลือก persona<br>ที่ต้องการสัมภาษณ์</h2>
+        <p style="font-family:var(--serif); font-style:italic; color:var(--ink-soft); font-size:14px; max-width: 360px; margin: 16px auto;">
+          แต่ละ persona คือลูกค้าเสมือนจริงของ LA GLACE — มีตัวตน วิธีพูด และพฤติกรรมการซื้อต่างกัน
         </p>
       </div>
     </main>
@@ -825,6 +1248,7 @@
 <script src="analyzer.js"></script>
 <script src="survey-personas.js"></script>
 <script src="survey.js"></script>
+<script src="avatars.js"></script>
 <script>
   const STORAGE_KEY = 'la_glace_chat_history';
 
@@ -843,15 +1267,17 @@
   function renderPersonaList() {
     const el = document.getElementById('persona-list');
     el.innerHTML = '';
-    LA_GLACE_DATA.personas.forEach(p => {
+    LA_GLACE_DATA.personas.forEach((p, idx) => {
       const card = document.createElement('div');
       card.className = 'persona-card' + (activePersona && activePersona.id === p.id ? ' active' : '');
       card.onclick = () => selectPersona(p);
+      const portrait = window.PortraitGen ? PortraitGen.generate(p, {size: 48}) : `<span style="font-size:22px;">${p.emoji}</span>`;
+      const num = String(idx + 1).padStart(2, '0');
       card.innerHTML = `
-        <div class="avatar" style="background: ${p.avatar_color}20;">${p.emoji}</div>
+        <div class="avatar">${portrait}</div>
         <div class="persona-info">
+          <div class="persona-segment">No. ${num} · ${p.segment}</div>
           <div class="persona-name">${p.codename}</div>
-          <div class="persona-segment">${p.segment}</div>
           <div class="persona-tagline">${p.tagline}</div>
         </div>
       `;
@@ -870,21 +1296,23 @@
     const p = activePersona;
     const history = chatHistory[p.id] || [];
 
+    const portrait = window.PortraitGen ? PortraitGen.generate(p, {size: 64}) : `<span style="font-size:28px;">${p.emoji}</span>`;
     const html = `
       <div class="chat-header">
-        <div class="avatar" style="background: ${p.avatar_color}20;">${p.emoji}</div>
+        <div class="avatar">${portrait}</div>
         <div class="chat-header-info">
-          <div class="chat-header-name">${p.codename} · ${p.detail.age} ปี</div>
-          <div class="chat-header-status"><span class="online-dot"></span> ${p.segment} · ${p.tagline}</div>
+          <div style="font-family:var(--sans); font-size:10px; text-transform:uppercase; letter-spacing:0.22em; color:var(--red); font-weight:700; margin-bottom:6px;">A Conversation With</div>
+          <div class="chat-header-name">${p.codename}</div>
+          <div class="chat-header-status">${p.segment} · ${p.detail.age} · ${p.tagline}</div>
         </div>
-        <div class="chat-actions">
-          <button onclick="clearChat()">ล้างประวัติ</button>
+        <div class="chat-actions" style="align-self:flex-start;">
+          <button onclick="clearChat()" style="font-family:var(--sans); font-size:10px; text-transform:uppercase; letter-spacing:0.15em; padding:6px 12px; border:1px solid var(--ink); background:var(--paper); cursor:pointer; color:var(--ink); font-weight:600;">Clear</button>
         </div>
       </div>
       <div class="messages" id="messages"></div>
       <div class="composer">
         <div class="composer-inner">
-          <textarea id="composer-input" placeholder="พิมพ์ข้อความถึง ${p.codename}..." rows="1"></textarea>
+          <textarea id="composer-input" placeholder="พิมพ์คำถามถึง ${p.codename}..." rows="1"></textarea>
           <button class="send-btn" id="send-btn" onclick="sendMessage()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="19" x2="12" y2="5"/>
@@ -938,11 +1366,28 @@
     const div = document.createElement('div');
     div.className = 'msg ' + (m.role === 'user' ? 'me' : 'them');
     const isUser = m.role === 'user';
-    const avatar = isUser
-      ? `<div class="avatar">คุณ</div>`
-      : `<div class="avatar" style="background: ${activePersona.avatar_color}20;">${activePersona.emoji}</div>`;
-    const content = isUser ? escapeHtml(m.content) : renderMarkdown(m.content);
-    div.innerHTML = `${avatar}<div><div class="bubble">${content}</div></div>`;
+    const p = activePersona;
+    let head, content;
+    if (isUser) {
+      head = `
+        <div class="msg-head">
+          <span class="qa-label">Q</span>
+          <span class="who">EDITOR</span>
+          <span class="who-sub">— Question —</span>
+        </div>`;
+      content = escapeHtml(m.content);
+    } else {
+      const portrait = window.PortraitGen ? PortraitGen.generate(p, {size: 32}) : `<span>${p.emoji}</span>`;
+      head = `
+        <div class="msg-head">
+          <span class="qa-label">A</span>
+          <div class="avatar" style="width:28px;height:28px;">${portrait}</div>
+          <span class="who">${p.codename}</span>
+          <span class="who-sub">— ${p.segment} —</span>
+        </div>`;
+      content = renderMarkdown(m.content);
+    }
+    div.innerHTML = `${head}<div class="bubble">${content}</div>`;
     return div;
   }
 
@@ -1013,8 +1458,14 @@
     const typingEl = document.createElement('div');
     typingEl.className = 'msg them';
     typingEl.id = 'typing-indicator';
+    const portraitT = window.PortraitGen ? PortraitGen.generate(p, {size: 28}) : `<span>${p.emoji}</span>`;
     typingEl.innerHTML = `
-      <div class="avatar" style="background: ${p.avatar_color}20;">${p.emoji}</div>
+      <div class="msg-head">
+        <span class="qa-label">A</span>
+        <div class="avatar" style="width:28px;height:28px;">${portraitT}</div>
+        <span class="who">${p.codename}</span>
+        <span class="who-sub">— กำลังคิด —</span>
+      </div>
       <div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>
     `;
     document.getElementById('messages').appendChild(typingEl);
@@ -1182,12 +1633,24 @@
 
   function updateModeStatus() {
     const el = document.getElementById('mode-status');
+    if (typeof SurveyEngine === 'undefined') {
+      el.textContent = 'Offline · rule-based';
+      return;
+    }
     if (SurveyEngine.getApiKey()) {
-      el.innerHTML = '<span class="dot ok"></span> AI panel mode (Claude API)';
+      el.textContent = 'AI panel mode · Claude';
     } else {
-      el.innerHTML = '<span class="dot warn"></span> Offline · rule-based (set API key for AI mode)';
+      el.textContent = 'Offline · rule-based';
     }
   }
+
+  // Set issue date in masthead
+  (function setIssueDate() {
+    const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const d = new Date();
+    const issueEl = document.getElementById('issue-date');
+    if (issueEl) issueEl.textContent = `${months[d.getMonth()]} ${d.getFullYear()}`;
+  })();
 
   function renderSegmentFilter() {
     const el = document.getElementById('seg-filter-list');
@@ -1290,26 +1753,33 @@
     activeSegmentView = 'overall';
     el.innerHTML = '';
 
-    // === Header card ===
+    // === Magazine header / research report cover ===
     const hdr = document.createElement('div');
     hdr.className = 'survey-card';
-    const usage = r.usage ? `· ${r.usage.input_tokens}→${r.usage.output_tokens} tokens` : '';
-    const dur = r.duration_ms ? `· ${(r.duration_ms/1000).toFixed(1)}s` : '';
+    hdr.style.cssText = 'border-top: 12px solid var(--ink); padding-top: 22px;';
+    const usage = r.usage ? `${r.usage.input_tokens} → ${r.usage.output_tokens} tokens` : '';
+    const dur = r.duration_ms ? `${(r.duration_ms/1000).toFixed(1)}s` : '';
     const sat = (r.predicted_satisfaction_score != null)
-      ? `<span class="satisfaction-pill">😊 Satisfaction <span class="score">${r.predicted_satisfaction_score.toFixed(1)}</span>/5</span>`
+      ? `<span class="satisfaction-pill">Satisfaction <span class="score">${r.predicted_satisfaction_score.toFixed(1)}</span>/5</span>`
       : '';
-    const conf = r.confidence ? `<span style="font-size:11px; color:var(--text-muted); margin-left:8px;">Confidence: ${r.confidence}</span>` : '';
     hdr.innerHTML = `
-      <h3 style="margin-bottom:4px;">📊 ผลการสำรวจ ${sat}</h3>
-      <div class="meta">${escapeHtml(r.question)} ${conf}</div>
-      <div style="font-size:10px; color:var(--text-muted);">${r.questionType} · ${r.mode === 'fallback_rule_based' ? 'rule-based' : (r.model || 'AI panel')} ${usage} ${dur}</div>
+      <div class="kicker">— Research Report · Findings —</div>
+      <h3 style="font-size:28px; margin-top:8px; margin-bottom:14px;">${escapeHtml(r.question)}</h3>
+      <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-mute); border-top:1px solid var(--ink); padding-top:10px;">
+        <span>Type · ${r.questionType}</span>
+        <span>Engine · ${r.mode === 'fallback_rule_based' ? 'rule-based' : (r.model || 'AI panel')}</span>
+        ${r.confidence ? `<span>Confidence · ${r.confidence}</span>` : ''}
+        ${usage ? `<span>${usage}</span>` : ''}
+        ${dur ? `<span>${dur}</span>` : ''}
+        <span style="flex:1; text-align:right;">${sat}</span>
+      </div>
     `;
     el.appendChild(hdr);
 
-    // === Distribution ===
+    // === Distribution — editorial infographic ===
     const dist = document.createElement('div');
     dist.className = 'survey-card';
-    dist.innerHTML = '<h3>Distribution (สัดส่วนคำตอบ)</h3>';
+    dist.innerHTML = '<div class="kicker">Figure 01</div><h3>Distribution of Responses</h3>';
 
     // Segment tabs
     const tabs = document.createElement('div');
@@ -1341,7 +1811,7 @@
     if (r.top_themes && r.top_themes.length) {
       const t = document.createElement('div');
       t.className = 'survey-card';
-      t.innerHTML = '<h3>💡 Top Reasons / Themes</h3>';
+      t.innerHTML = '<div class="kicker">Voices from the Panel</div><h3>What People Are Saying</h3>';
       r.top_themes.forEach(th => {
         const segNames = (th.segments || []).map(sid => {
           const s = window.LA_GLACE_SURVEY.getSegment(sid);
@@ -1367,23 +1837,29 @@
       const i = document.createElement('div');
       i.className = 'survey-card';
       i.innerHTML = `
+        <div class="kicker">Editorial · Strategic Implications</div>
         <div class="insight-box">
-          <div class="label">🎯 Key Insight</div>
           <div class="text">${escapeHtml(r.key_insight)}</div>
         </div>
         <div class="ro-grid">
           <div class="ro-card risks">
-            <h5>⚠️ ความเสี่ยง</h5>
+            <h5>Risks</h5>
             <ul>${(r.risks || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>—</li>'}</ul>
           </div>
           <div class="ro-card opps">
-            <h5>✨ โอกาส</h5>
+            <h5>Opportunities</h5>
             <ul>${(r.opportunities || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>—</li>'}</ul>
           </div>
         </div>
       `;
       el.appendChild(i);
     }
+
+    // Editorial colophon / footer mark
+    const footer = document.createElement('div');
+    footer.style.cssText = 'text-align:center; padding:20px 0 0; color:var(--ink-mute); font-family:var(--serif); font-style:italic; font-size:11px;';
+    footer.innerHTML = '— END OF REPORT · LA GLACE EDITORIAL —';
+    el.appendChild(footer);
   }
 
   function makeSegTab(id, label, color) {
